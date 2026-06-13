@@ -1,0 +1,5 @@
+.DS_Store
+/导出/
+/test/
+/*.md
+!/README.md
