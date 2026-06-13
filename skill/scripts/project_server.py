@@ -14,6 +14,78 @@ from urllib.parse import unquote, urlparse
 import build_graph
 import manage_project
 
+INVALID_TITLE_CHARS = set('/\\:*?"<>|')
+
+
+def clean_list(value):
+    if not value:
+        return []
+    if isinstance(value, str):
+        value = [value]
+    return [str(item).strip() for item in value if str(item).strip()]
+
+
+def validate_title(title):
+    title = str(title or "").strip()
+    if not title:
+        raise ValueError("标题不能为空")
+    if title in {".", ".."}:
+        raise ValueError("标题不能是特殊目录名")
+    if any(ch in INVALID_TITLE_CHARS for ch in title):
+        raise ValueError("标题包含不能用于文件名的字符")
+    if len(title) > 60:
+        raise ValueError("标题太长")
+    return title
+
+
+def validate_project(project):
+    project = str(project or "").strip()
+    if not project:
+        return ""
+    if "/" in project or "\\" in project or project in {".", ".."}:
+        raise ValueError("项目名只能是一层文件夹名")
+    if any(ch in INVALID_TITLE_CHARS for ch in project):
+        raise ValueError("项目名包含不能用于文件名的字符")
+    return project
+
+
+def create_bubble(vault, payload):
+    title = validate_title(payload.get("title"))
+    project = validate_project(payload.get("project"))
+    topics = clean_list(payload.get("topics")) or ["产品", "游戏"]
+    links = clean_list(payload.get("links"))
+    quotes = clean_list(payload.get("quotes"))
+    body = str(payload.get("body") or "").strip()
+    if not body:
+        raise ValueError("内容不能为空")
+
+    now = datetime.datetime.now().astimezone()
+    target_dir = vault / project if project else vault
+    target_dir.mkdir(parents=True, exist_ok=True)
+    out = target_dir / f"{title}.md"
+    if out.exists() and not payload.get("overwrite"):
+        raise FileExistsError("同名泡泡已存在")
+
+    lines = [
+        "---",
+        f"created: {now.date().isoformat()}",
+        f"created_at: {now.isoformat(timespec='seconds')}",
+        "topics: [" + ", ".join(topics) + "]",
+        "---",
+        "",
+        body,
+        "",
+    ]
+    if quotes:
+        lines.append("原句:")
+        lines.extend(f"> {quote}" for quote in quotes)
+        lines.append("")
+    if links:
+        lines.append("关联:" + "、".join(f"[[{link}]]" for link in links))
+
+    out.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+    return out
+
 
 def stamp():
     return datetime.datetime.now().strftime("%Y%m%d")
@@ -234,6 +306,16 @@ def make_handler(vault, output_name):
                 if parsed.path == "/api/rebuild":
                     self.rebuild()
                     self.send_json(200, {"ok": True})
+                    return
+                if parsed.path == "/api/bubbles":
+                    out = create_bubble(vault, payload)
+                    self.rebuild()
+                    self.send_json(200, {
+                        "ok": True,
+                        "title": out.stem,
+                        "path": str(out),
+                        "relative_path": out.relative_to(vault).as_posix(),
+                    })
                     return
                 if parsed.path == "/api/export":
                     data = enrich_degrees(build_graph.collect(vault))

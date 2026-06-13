@@ -1171,7 +1171,23 @@ const projectFilterButton = document.getElementById('project-filter-button');
 const projectMenu = document.getElementById('project-menu');
 const projectOptions = document.getElementById('project-options');
 const projectStatus = document.getElementById('project-status');
-let activeProject = '';
+const PROJECT_FILTER_STORAGE_KEY = 'linggan-paopao-active-project';
+function validProjectValue(value){
+  value = value || '';
+  if (!value || value === '__free__') return value;
+  return (DATA.projects || []).includes(value) ? value : '';
+}
+function readProjectFilter(){
+  try { return validProjectValue(localStorage.getItem(PROJECT_FILTER_STORAGE_KEY) || ''); }
+  catch (_) { return ''; }
+}
+function saveProjectFilter(value){
+  try {
+    if (value) localStorage.setItem(PROJECT_FILTER_STORAGE_KEY, value);
+    else localStorage.removeItem(PROJECT_FILTER_STORAGE_KEY);
+  } catch (_) {}
+}
+let activeProject = readProjectFilter();
 function setProjectStatus(message, isError=false){
   projectStatus.textContent = message;
   projectStatus.classList.toggle('error', isError);
@@ -1203,7 +1219,9 @@ function openProjectMenu(){
   projectFilterButton.setAttribute('aria-expanded', 'true');
 }
 function applyProject(value){
+  value = validProjectValue(value);
   activeProject = value;
+  saveProjectFilter(value);
   projectFilterButton.textContent = projectNameFor(value);
   if (selected && !matchesProject(selected)) {
     panel.classList.remove('open');
@@ -1260,6 +1278,7 @@ projectOptions.addEventListener('submit', async e => {
   setProjectStatus('正在改名项目...');
   try {
     await postProjectApi('/api/projects/rename', {old_name: oldName, new_name: newName});
+    if (activeProject === oldName) saveProjectFilter(newName);
     setProjectStatus('已改名项目,正在刷新图谱。');
     window.location.reload();
   } catch (err) {
@@ -1276,6 +1295,7 @@ document.getElementById('project-create-form').addEventListener('submit', async 
   button.disabled = true;
   try {
     await postProjectApi('/api/projects', {name});
+    saveProjectFilter(name);
     setProjectStatus('已新建项目,正在刷新图谱。');
     window.location.reload();
   } catch (err) {
@@ -1283,6 +1303,7 @@ document.getElementById('project-create-form').addEventListener('submit', async 
     button.disabled = false;
   }
 });
+projectFilterButton.textContent = projectNameFor(activeProject);
 renderProjectOptions();
 
 // 图例

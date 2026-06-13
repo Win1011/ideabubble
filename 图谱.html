@@ -6,69 +6,918 @@
 <title>灵感泡泡</title>
 <style>
 :root {
-  --bg: #16161e; --panel: #1f1f2b; --line: #34344a;
-  --text: #d8d8e8; --dim: #8a8aa3; --accent: #a78bfa;
+  --bg: #fbfbfa;
+  --ink: #1f1f1f;
+  --muted: #7b7b78;
+  --soft: #f1f1ef;
+  --line: rgba(31,31,31,.10);
+  --panel: rgba(255,255,255,.92);
+  --panel-strong: #ffffff;
+  --accent: #111111;
+  --accent-soft: rgba(31,31,31,.08);
+  --shadow: 0 22px 70px rgba(15, 15, 15, .10);
+  --shadow-soft: 0 8px 28px rgba(15, 15, 15, .07);
 }
 * { box-sizing: border-box; margin: 0; }
-body { background: var(--bg); color: var(--text); font: 14px/1.6 -apple-system, "PingFang SC", sans-serif; overflow: hidden; }
-header { position: fixed; top: 0; left: 0; right: 0; z-index: 10; display: flex; align-items: center; gap: 16px;
-  padding: 10px 18px; background: rgba(22,22,30,.85); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
-header h1 { font-size: 16px; font-weight: 600; }
-#stats { color: var(--dim); font-size: 12px; }
-.tabs { margin-left: auto; display: flex; gap: 4px; }
-.tabs button { background: none; border: 1px solid var(--line); color: var(--dim); padding: 4px 14px;
-  border-radius: 999px; cursor: pointer; font-size: 13px; }
-.tabs button.on { color: #fff; border-color: var(--accent); background: rgba(167,139,250,.15); }
-#view-graph, #view-timeline { position: fixed; inset: 0; padding-top: 49px; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
+  overflow: hidden;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(31,31,31,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31,31,31,.025) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.55), transparent 76%);
+}
+header {
+  position: fixed;
+  top: 14px;
+  left: 16px;
+  right: 16px;
+  z-index: 10;
+  min-height: 60px;
+  display: grid;
+  grid-template-columns: minmax(176px, auto) minmax(220px, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 10px 10px 14px;
+  background: rgba(255,255,255,.88);
+  backdrop-filter: blur(18px) saturate(1.1);
+  border: 1px solid rgba(31,31,31,.08);
+  border-bottom-color: var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.mark {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid rgba(31,31,31,.13);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+}
+.mark::before,
+.mark::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+}
+.mark::before {
+  width: 18px;
+  height: 18px;
+  left: 8px;
+  top: 8px;
+  background: #111;
+}
+.mark::after {
+  width: 12px;
+  height: 12px;
+  right: 7px;
+  bottom: 7px;
+  background: #fff;
+  border: 2px solid #111;
+}
+header h1 { font-size: 15px; line-height: 1.1; font-weight: 720; letter-spacing: 0; }
+#stats { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.tools { display: flex; justify-content: center; align-items: center; gap: 8px; min-width: 0; }
+.actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
+.search-wrap {
+  position: relative;
+  width: min(420px, 100%);
+}
+.search-wrap .ico-search {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+.ico-search::before {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  left: 1px;
+  top: 1px;
+  border: 1.7px solid currentColor;
+  border-radius: 50%;
+}
+.ico-search::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 1.7px;
+  left: 8px;
+  top: 10px;
+  background: currentColor;
+  transform: rotate(45deg);
+  transform-origin: left center;
+}
+.search {
+  width: 100%;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 0 15px 0 35px;
+  outline: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+}
+.search::placeholder { color: rgba(119,116,107,.76); }
+.search:focus { border-color: rgba(31,31,31,.34); box-shadow: 0 0 0 4px var(--accent-soft); }
+.project-picker { position: relative; min-width: 148px; }
+.project-filter {
+  height: 38px;
+  width: 100%;
+  min-width: 148px;
+  max-width: 220px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 0 30px 0 12px;
+  outline: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.project-filter::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-65%) rotate(45deg);
+  opacity: .65;
+}
+.project-filter:focus { border-color: rgba(31,31,31,.34); box-shadow: 0 0 0 4px var(--accent-soft); }
+.project-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 24;
+  width: 280px;
+  max-height: min(520px, calc(100vh - 110px));
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255,255,255,.98);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(18px);
+}
+.project-menu[hidden] { display: none; }
+.project-menu-section { display: grid; gap: 4px; padding-bottom: 7px; }
+.project-menu-section + .project-menu-section { border-top: 1px solid var(--line); padding-top: 8px; }
+.project-option-row { display: grid; grid-template-columns: minmax(0, 1fr) 28px; gap: 4px; align-items: center; }
+.project-option,
+.project-icon {
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.project-option {
+  text-align: left;
+  padding: 0 9px;
+  font: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.project-option:hover,
+.project-icon:hover { background: var(--soft); }
+.project-option.on { background: var(--ink); color: #fff; }
+.project-icon {
+  position: relative;
+  color: var(--muted);
+}
+.project-icon::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 15px;
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+  transform: rotate(-38deg);
+  transform-origin: center;
+}
+.project-icon::after {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 10px;
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: currentColor;
+  transform: rotate(-38deg);
+}
+.project-inline-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  padding: 5px 0 6px;
+}
+.project-inline-form[hidden] { display: none; }
+.project-inline-form input {
+  min-width: 0;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 0 9px;
+  outline: none;
+}
+.project-inline-form button,
+.project-create button {
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+  padding: 0 10px;
+}
+.project-create { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+.project-create label,
+.project-menu-status {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 11px;
+}
+.project-create input {
+  min-width: 0;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 0 9px;
+  outline: none;
+}
+.project-menu-status.error { color: #9f1d1d; }
+.tabs {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--soft);
+}
+.tabs button {
+  height: 32px;
+  min-width: 62px;
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  padding: 0 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.tabs button.on { color: #fff; background: var(--ink); box-shadow: 0 8px 18px rgba(31,31,31,.13); }
+.ico {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  flex: 0 0 auto;
+}
+.ico-graph::before,
+.ico-graph::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  background: currentColor;
+}
+.ico-graph::before { width: 6px; height: 6px; left: 1px; top: 2px; box-shadow: 7px 5px 0 currentColor; }
+.ico-graph::after { width: 9px; height: 1.5px; left: 4px; top: 7px; transform: rotate(35deg); opacity: .65; }
+.ico-time::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border: 1.8px solid currentColor;
+  border-radius: 999px;
+}
+.ico-time::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 4px;
+  width: 1.6px;
+  height: 5px;
+  background: currentColor;
+  box-shadow: 3px 4px 0 -1px currentColor;
+}
+.ico-more::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: 6px;
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 5px 0 0 currentColor, 10px 0 0 currentColor;
+}
+.export { position: relative; }
+.export-toggle {
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 0 14px;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.export-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  display: none;
+  padding: 7px;
+  background: rgba(255,255,255,.98);
+  border: 1px solid rgba(31,31,31,.09);
+  border-bottom-color: var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(18px);
+}
+.export.open .export-menu { display: block; }
+.export-menu button {
+  width: 100%;
+  display: block;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  padding: 9px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+.export-menu button:hover { background: var(--soft); }
+.export-menu small { display: block; color: var(--muted); font-size: 11px; line-height: 1.35; margin-top: 1px; }
+.export-status {
+  min-height: 18px;
+  padding: 4px 10px 2px;
+  color: var(--muted);
+  font-size: 11px;
+  word-break: break-all;
+}
+.export-status a { color: var(--ink); text-decoration: none; border-bottom: 1px solid rgba(31,31,31,.25); }
+.project-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+  padding: 10px;
+  background: rgba(31,31,31,.12);
+  backdrop-filter: blur(5px);
+}
+.project-modal[hidden] { display: none; }
+.project-card {
+  width: min(390px, calc(100vw - 20px));
+  height: 100%;
+  padding: 0;
+  background: rgba(255,255,255,.98);
+  border: 1px solid rgba(31,31,31,.10);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.project-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 15px;
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+}
+.project-card h2 { font-size: 17px; line-height: 1.2; }
+.project-card p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.project-card .close {
+  position: static;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+}
+.project-sheet-body {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  overflow: auto;
+}
+.project-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+.project-form.rename { grid-template-columns: 1fr; }
+.project-form label {
+  grid-column: 1 / -1;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 650;
+}
+.project-form small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+  margin-top: -5px;
+}
+.project-form input,
+.project-form select {
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 0 11px;
+  outline: none;
+}
+.project-form button {
+  height: 36px;
+  min-width: 72px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+  padding: 0 13px;
+}
+.project-form button:disabled { opacity: .45; cursor: not-allowed; }
+.project-status {
+  min-height: 20px;
+  padding: 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.project-status.error { color: #9f1d1d; }
+#view-graph, #view-timeline { position: fixed; inset: 0; padding-top: 86px; }
 #cv { width: 100%; height: 100%; display: block; cursor: grab; }
 #view-timeline { overflow: auto; }
 #view-timeline svg { display: block; }
-.legend { position: fixed; left: 14px; bottom: 14px; z-index: 10; display: flex; flex-wrap: wrap; gap: 6px 12px;
-  max-width: 50vw; font-size: 12px; color: var(--dim); }
-.legend span { display: inline-flex; align-items: center; gap: 5px; }
-.legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-#panel { position: fixed; top: 49px; right: 0; bottom: 0; width: 340px; max-width: 88vw; z-index: 11;
-  background: var(--panel); border-left: 1px solid var(--line); padding: 20px; overflow-y: auto;
-  transform: translateX(100%); transition: transform .22s ease; }
+.legend {
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  max-width: min(680px, calc(100vw - 36px));
+  font-size: 12px;
+  color: var(--muted);
+}
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255,255,255,.88);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 7px 18px rgba(15,15,15,.04);
+}
+.legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 3px rgba(31,31,31,.05); }
+#panel {
+  position: fixed;
+  top: 88px;
+  right: 16px;
+  bottom: 16px;
+  width: 370px;
+  max-width: calc(100vw - 32px);
+  z-index: 11;
+  background: var(--panel);
+  border: 1px solid rgba(31,31,31,.09);
+  border-bottom-color: var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(24px) saturate(1.15);
+  padding: 22px;
+  overflow-y: auto;
+  transform: translateX(calc(100% + 26px));
+  transition: transform .26s cubic-bezier(.2,.8,.2,1);
+}
 #panel.open { transform: none; }
-#panel .close { position: absolute; top: 10px; right: 12px; background: none; border: none; color: var(--dim);
-  font-size: 18px; cursor: pointer; }
-#panel h2 { font-size: 17px; margin-bottom: 6px; padding-right: 24px; }
-#panel .meta { color: var(--dim); font-size: 12px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-#panel .chip { border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; font-size: 11px; }
-#panel .body p { margin-bottom: 10px; }
-#panel .links { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
-#panel .links h3 { font-size: 12px; color: var(--dim); font-weight: 500; margin-bottom: 6px; }
-a.wl { color: var(--accent); cursor: pointer; text-decoration: none; border-bottom: 1px dashed rgba(167,139,250,.5); }
-.ghost-hint { color: var(--dim); font-style: italic; }
-#empty { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--dim); }
+#panel .close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  background: var(--soft);
+  border: 0;
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+#panel h2 { font-size: 22px; line-height: 1.2; margin-bottom: 8px; padding-right: 36px; letter-spacing: 0; }
+#panel .meta { color: var(--muted); font-size: 12px; margin-bottom: 18px; display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+#panel .chip { border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; font-size: 11px; background: var(--soft); }
+#panel .body p { margin-bottom: 12px; color: #333129; }
+#panel .body blockquote {
+  margin: 10px 0 14px;
+  padding: 10px 12px;
+  border-left: 3px solid rgba(31,31,31,.32);
+  background: rgba(31,31,31,.04);
+  color: #3d3b35;
+  border-radius: 0 8px 8px 0;
+}
+#panel .links { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
+#panel .links h3 { font-size: 12px; color: var(--muted); font-weight: 650; margin-bottom: 8px; }
+#panel .links div { margin: 6px 0; }
+.ideas { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
+.ideas h3 { font-size: 12px; color: var(--muted); font-weight: 650; margin-bottom: 8px; }
+.home-ideas {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 8;
+  width: min(430px, calc(100vw - 32px));
+  padding: 16px;
+  background: rgba(255,255,255,.90);
+  border: 1px solid rgba(31,31,31,.09);
+  border-bottom-color: var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(22px) saturate(1.1);
+}
+.home-ideas:not(.open) { display: none; }
+.idea-launcher {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 8;
+  height: 44px;
+  min-width: 122px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid rgba(31,31,31,.10);
+  border-radius: 999px;
+  background: rgba(255,255,255,.92);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(20px) saturate(1.1);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+.idea-launcher:hover { background: #fff; }
+.bulb-icon {
+  position: relative;
+  width: 17px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+.bulb-icon::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 1px;
+  width: 11px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-bottom: 0;
+  border-radius: 999px 999px 7px 7px;
+}
+.bulb-icon::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  bottom: 1px;
+  width: 7px;
+  height: 5px;
+  border-top: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  border-radius: 2px;
+}
+.home-ideas-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.home-ideas-title { min-width: 0; }
+.home-ideas h2 {
+  font-size: 13px;
+  line-height: 1.3;
+  letter-spacing: 0;
+  margin-bottom: 2px;
+}
+.home-ideas .source {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.cycle-ideas {
+  flex: 0 0 auto;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.cycle-ideas:hover { background: #fff; }
+.close-ideas {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--soft);
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+.close-ideas:hover { background: #fff; color: var(--ink); }
+.idea-list { display: grid; gap: 8px; }
+.idea-btn {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  padding: 10px 11px;
+  text-align: left;
+  font: inherit;
+  line-height: 1.45;
+  cursor: pointer;
+}
+.idea-btn:hover { background: var(--soft); }
+.home-ideas .idea-list { gap: 7px; }
+.home-ideas .idea-btn {
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+.copy-tip {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  min-height: 16px;
+}
+.copy-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  z-index: 30;
+  transform: translate(-50%, 16px);
+  opacity: 0;
+  pointer-events: none;
+  padding: 9px 13px;
+  border: 1px solid rgba(31,31,31,.13);
+  border-radius: 999px;
+  background: rgba(31,31,31,.92);
+  color: #fff;
+  font-size: 13px;
+  box-shadow: 0 12px 30px rgba(31,31,31,.2);
+  transition: opacity .18s ease, transform .18s ease;
+}
+.copy-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+a.wl { color: var(--accent); cursor: pointer; text-decoration: none; border-bottom: 1px solid rgba(31,31,31,.24); }
+.ghost-hint { color: var(--muted); font-style: italic; }
+#empty {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 120px 22px 60px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.empty-card {
+  width: min(560px, 100%);
+  padding: 36px;
+  text-align: left;
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(31,31,31,.08);
+  border-bottom-color: var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(22px);
+}
+.empty-icon {
+  position: relative;
+  width: 54px;
+  height: 38px;
+  margin-bottom: 18px;
+}
+.empty-icon::before,
+.empty-icon::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+}
+.empty-icon::before {
+  width: 34px;
+  height: 34px;
+  left: 0;
+  top: 2px;
+  background: #111;
+}
+.empty-icon::after {
+  width: 22px;
+  height: 22px;
+  right: 0;
+  top: 0;
+  background: #fff;
+  border: 2px solid #111;
+}
+.empty-kicker { color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px; }
+.empty-card h2 { color: var(--ink); font-size: clamp(28px, 6vw, 48px); line-height: 1.05; letter-spacing: 0; margin-bottom: 14px; }
+.empty-card p { max-width: 42ch; }
+@media (max-width: 760px) {
+  header {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+    border-radius: 16px;
+  }
+  .brand { grid-column: 1; grid-row: 1; }
+  .tools { grid-column: 1 / -1; grid-row: 2; justify-content: stretch; }
+  .actions { display: contents; }
+  .actions .export { grid-column: 2; grid-row: 1; justify-self: end; }
+  .actions .tabs { grid-column: 1 / -1; grid-row: 3; }
+  .search-wrap { width: 100%; }
+  .search { width: 100%; }
+  .project-picker { width: 100%; }
+  .project-filter { max-width: none; }
+  .project-menu {
+    left: 0;
+    right: 0;
+    width: auto;
+    max-height: min(54vh, 420px);
+  }
+  .export-toggle { width: 82px; height: 34px; }
+  .tabs { justify-content: stretch; }
+  .tabs button { flex: 1; }
+  #view-graph, #view-timeline { padding-top: 154px; }
+  #panel { top: auto; left: 10px; right: 10px; bottom: 10px; width: auto; max-height: 72vh; transform: translateY(calc(100% + 26px)); }
+  #panel.open { transform: none; }
+  .home-ideas {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    width: auto;
+    max-height: 42vh;
+    overflow-y: auto;
+  }
+  .idea-launcher {
+    left: 10px;
+    bottom: 10px;
+  }
+  .legend { display: none; }
+}
 </style>
 </head>
 <body>
 <header>
-  <h1>🫧 灵感泡泡</h1>
-  <span id="stats"></span>
-  <div class="tabs">
-    <button id="tab-graph" class="on">图谱</button>
-    <button id="tab-timeline">时间线</button>
+  <div class="brand">
+    <div class="mark" aria-hidden="true"></div>
+    <div>
+      <h1>灵感泡泡</h1>
+      <span id="stats"></span>
+    </div>
+  </div>
+  <div class="tools">
+    <div class="search-wrap">
+      <span class="ico ico-search" aria-hidden="true"></span>
+      <input class="search" id="search" type="search" placeholder="搜索泡泡、主题或正文">
+    </div>
+    <div class="project-picker" id="project-picker">
+      <button class="project-filter" id="project-filter-button" type="button" aria-haspopup="true" aria-expanded="false">全部项目</button>
+      <div class="project-menu" id="project-menu" hidden>
+        <div class="project-menu-section" id="project-options"></div>
+        <form class="project-create project-menu-section" id="project-create-form">
+          <label for="project-create-name">新建项目</label>
+          <input id="project-create-name" name="name" autocomplete="off" placeholder="项目名">
+          <button type="submit">新建</button>
+        </form>
+        <div class="project-menu-status" id="project-status" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="tabs">
+      <button id="tab-graph" class="on"><span class="ico ico-graph"></span>图谱</button>
+      <button id="tab-timeline"><span class="ico ico-time"></span>时间线</button>
+    </div>
+    <div class="export" id="export">
+      <button class="export-toggle" id="export-toggle" type="button" aria-haspopup="true" aria-expanded="false"><span class="ico ico-more"></span>更多</button>
+      <div class="export-menu" id="export-menu">
+        <button type="button" data-export="markdown">Markdown 索引<small>适合 Obsidian、Notion、文档软件</small></button>
+        <button type="button" data-export="harvest">灵感收成<small>最近新增、热门主题、组合发散</small></button>
+        <button type="button" data-export="json">JSON 数据<small>适合程序、自动化、二次分析</small></button>
+        <button type="button" data-export="csv">CSV 表格<small>适合 Numbers、Excel、Sheets</small></button>
+        <div class="export-status" id="export-status" role="status" aria-live="polite"></div>
+      </div>
+    </div>
   </div>
 </header>
 <div id="view-graph"><canvas id="cv"></canvas></div>
 <div id="view-timeline" hidden></div>
 <div class="legend" id="legend"></div>
+<div class="copy-toast" id="copy-toast" role="status" aria-live="polite"></div>
+<button class="idea-launcher" id="idea-launcher" type="button" aria-controls="home-ideas">
+  <span class="bulb-icon" aria-hidden="true"></span>
+  继续聊聊
+</button>
+<section class="home-ideas" id="home-ideas" aria-label="继续聊聊">
+  <div class="home-ideas-head">
+    <div class="home-ideas-title">
+      <h2>继续聊聊</h2>
+      <div class="source" id="home-ideas-source"></div>
+    </div>
+    <button class="cycle-ideas" id="cycle-ideas" type="button">换一组</button>
+    <button class="close-ideas" id="close-ideas" type="button" aria-label="收起继续聊聊">×</button>
+  </div>
+  <div class="idea-list" id="home-ideas-list"></div>
+  <div class="copy-tip">点一下复制话题,拿去继续聊。</div>
+</section>
 <aside id="panel">
   <button class="close" id="panel-close">×</button>
   <h2 id="p-title"></h2>
   <div class="meta" id="p-meta"></div>
   <div class="body" id="p-body"></div>
+  <div class="ideas" id="p-ideas"></div>
   <div class="links" id="p-links"></div>
 </aside>
 <script>
-const DATA = {"nodes": [{"id": "README", "date": "2026-06-11", "topics": [], "html": "<p># 灵感泡泡</p><p>这是一个 Codex skill 项目,用于把日常闲聊里冒出来的想法整理成 Obsidian 兼容的 markdown &quot;泡泡&quot;,并生成可交互的想法关系图谱。</p><p>## 本地位置</p><p>- 当前项目目录: `/Users/xinyuewang/Documents/灵感泡泡`<br>- Codex skill 安装目录: `/Users/xinyuewang/.codex/skills/灵感泡泡`<br>- 图谱输出文件: `图谱.html`</p><p>## 目录结构</p><p>```text<br>.<br>├── README.md<br>├── 图谱.html<br>└── skill<br>    ├── SKILL.md<br>    └── scripts<br>        └── build_graph.py<br>```</p><p>## 使用方式</p><p>生成图谱:</p><p>```bash<br>python3 skill/scripts/build_graph.py . -o 图谱.html<br>```</p><p>在 Codex 中使用时,skill 的运行说明位于 `skill/SKILL.md`。实际安装到 Codex 后,默认泡泡库位置会按说明使用 `~/灵感泡泡/`。</p>", "links": [], "ghost": false}], "edges": [], "topics": [], "generated": "2026-06-11 17:11"};
-const PALETTE = ['#a78bfa','#7dd3fc','#fda4af','#86efac','#fcd34d','#f9a8d4','#93c5fd','#fdba74','#5eead4','#c4b5fd'];
+const DATA = {"nodes": [{"id": "Agent桌面观察器", "date": "2026-06-11", "created_at": "2026-06-11T17:39:54+08:00", "modified": 1781189233.5012796, "path": "Agent桌面观察器.md", "project": "", "topics": ["产品", "AI", "交互"], "body": "这不是聊天框里的小游戏,而是一个类似 Vibe Island、桌面挂件、灵动岛的小工具:它常驻在桌面或屏幕边缘,让用户在工作时随时瞄一眼,看到后台 agent 们正在做什么。\n\n核心价值是把黑箱式的 agent 工作流变成一个可观察的微型世界。比如某个 agent 正在查资料,它就在湖边钓鱼或翻书;某个 agent 正在写代码,它就在修桥、搭积木、搬材料;某个 agent 卡住了,它会停下来挠头、鱼线打结、冒出问号;完成任务时,它插旗、收鱼篓、把成果放进小仓库。\n\n它应该绑定真实状态,而不是纯装饰动画。底层可以接收类似 `agent.started`、`tool.called`、`tool.finished`、`agent.blocked`、`agent.completed`、`agent.needs_input` 的事件,再映射成小世界里的动作。这样用户看到的不是假的热闹,而是真实工作遥测的游戏化表达。\n\n折叠时它可以像灵动岛一样只显示一行状态:几个 agent 在工作、有没有卡住、有没有新产出。展开时才看到完整的小岛、湖面、钓手、任务气泡和今日成果。\n\n关联:[[等待剧场]]、[[多钓手隐喻]]、[[状态游戏化]]、[[第三者闲置游戏]]", "html": "<p>这不是聊天框里的小游戏,而是一个类似 Vibe Island、桌面挂件、灵动岛的小工具:它常驻在桌面或屏幕边缘,让用户在工作时随时瞄一眼,看到后台 agent 们正在做什么。</p><p>核心价值是把黑箱式的 agent 工作流变成一个可观察的微型世界。比如某个 agent 正在查资料,它就在湖边钓鱼或翻书;某个 agent 正在写代码,它就在修桥、搭积木、搬材料;某个 agent 卡住了,它会停下来挠头、鱼线打结、冒出问号;完成任务时,它插旗、收鱼篓、把成果放进小仓库。</p><p>它应该绑定真实状态,而不是纯装饰动画。底层可以接收类似 `agent.started`、`tool.called`、`tool.finished`、`agent.blocked`、`agent.completed`、`agent.needs_input` 的事件,再映射成小世界里的动作。这样用户看到的不是假的热闹,而是真实工作遥测的游戏化表达。</p><p>折叠时它可以像灵动岛一样只显示一行状态:几个 agent 在工作、有没有卡住、有没有新产出。展开时才看到完整的小岛、湖面、钓手、任务气泡和今日成果。</p><p>关联:<a class=\"wl\" data-id=\"等待剧场\">等待剧场</a>、<a class=\"wl\" data-id=\"多钓手隐喻\">多钓手隐喻</a>、<a class=\"wl\" data-id=\"状态游戏化\">状态游戏化</a>、<a class=\"wl\" data-id=\"第三者闲置游戏\">第三者闲置游戏</a></p>", "links": ["等待剧场", "多钓手隐喻", "状态游戏化", "第三者闲置游戏"], "suggestions": ["如果把「Agent桌面观察器」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「Agent桌面观察器」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、AI」换一个完全不同领域,「Agent桌面观察器」会变成什么?", "从用户情绪看,「Agent桌面观察器」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「等待剧场」继续发散,它和「Agent桌面观察器」能组合出一个什么新方向?"], "ghost": false}, {"id": "Mac版小钓岛", "date": "2026-06-11", "created_at": "2026-06-11T17:47:02+08:00", "modified": 1781189233.6683526, "path": "Mac版小钓岛.md", "project": "", "topics": ["产品", "AI", "游戏"], "body": "Fishing Agents 可以先从 Mac 版本开始做,因为它的使用场景天然是桌面常驻:用户工作时不一定在聊天窗口里,但可以在屏幕边缘或菜单栏附近看到 agent 们是否还在工作。\n\n第一版应该是一个 Mac 桌面悬浮小岛:默认折叠成一个很小的状态条,展开后是像素风小湖面。每个 agent 是一个钓手,后台事件会映射成钓鱼动作:调用工具是抛竿,有进展是鱼漂动,完成任务是钓上鱼,卡住是鱼线打结,失败是钓上水草。\n\n产品名字暂定 Fishing Agents。它不是完整游戏,也不是日志面板,而是介于桌面宠物、灵动岛、后台任务监控之间的小工具。真正的关键是让它绑定真实 agent 状态,并且沉淀今日鱼获,让用户看到 AI 今天帮自己\"钓到\"了什么。\n\n第一版技术上可以用 Xcode 的 macOS App 模板,SwiftUI + Swift,先不选 Storage。先做静态像素湖和 demo 事件,再接 JSONL 事件监听,最后做今日鱼获。\n\n关联:[[Agent桌面观察器]]、[[多钓手隐喻]]、[[第三者闲置游戏]]、[[鱼获记录]]、[[状态游戏化]]", "html": "<p>Fishing Agents 可以先从 Mac 版本开始做,因为它的使用场景天然是桌面常驻:用户工作时不一定在聊天窗口里,但可以在屏幕边缘或菜单栏附近看到 agent 们是否还在工作。</p><p>第一版应该是一个 Mac 桌面悬浮小岛:默认折叠成一个很小的状态条,展开后是像素风小湖面。每个 agent 是一个钓手,后台事件会映射成钓鱼动作:调用工具是抛竿,有进展是鱼漂动,完成任务是钓上鱼,卡住是鱼线打结,失败是钓上水草。</p><p>产品名字暂定 Fishing Agents。它不是完整游戏,也不是日志面板,而是介于桌面宠物、灵动岛、后台任务监控之间的小工具。真正的关键是让它绑定真实 agent 状态,并且沉淀今日鱼获,让用户看到 AI 今天帮自己&quot;钓到&quot;了什么。</p><p>第一版技术上可以用 Xcode 的 macOS App 模板,SwiftUI + Swift,先不选 Storage。先做静态像素湖和 demo 事件,再接 JSONL 事件监听,最后做今日鱼获。</p><p>关联:<a class=\"wl\" data-id=\"Agent桌面观察器\">Agent桌面观察器</a>、<a class=\"wl\" data-id=\"多钓手隐喻\">多钓手隐喻</a>、<a class=\"wl\" data-id=\"第三者闲置游戏\">第三者闲置游戏</a>、<a class=\"wl\" data-id=\"鱼获记录\">鱼获记录</a>、<a class=\"wl\" data-id=\"状态游戏化\">状态游戏化</a></p>", "links": ["Agent桌面观察器", "多钓手隐喻", "第三者闲置游戏", "鱼获记录", "状态游戏化"], "suggestions": ["如果把「Mac版小钓岛」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「Mac版小钓岛」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、AI」换一个完全不同领域,「Mac版小钓岛」会变成什么?", "从用户情绪看,「Mac版小钓岛」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「Agent桌面观察器」继续发散,它和「Mac版小钓岛」能组合出一个什么新方向?"], "ghost": false}, {"id": "人生必玩游戏清单", "date": "2026-06-14", "created_at": "2026-06-14T00:17:48+08:00", "modified": 1781367468.4848433, "path": "test/人生必玩游戏清单.md", "project": "test", "topics": ["产品", "游戏"], "body": "这份人生必玩游戏清单偏向人生体验和游戏设计启发,可以作为独立游戏研究的参照系。\n\n推荐清单包括:《塞尔达传说:旷野之息》看自由探索,《超级马力欧 奥德赛》看操作快乐,《传送门 2》看机制设计,《Outer Wilds》看好奇心驱动,《极乐迪斯科》看文字与选择,《黑暗之魂》看失败学习,《Hades》看死亡循环叙事,《我的世界》看创造力本身,《风之旅人》看无语言情绪体验,《旺达与巨像》看极简与孤独感。\n\n如果是为了研究独立游戏,最值得优先拆的是《Outer Wilds》《Hades》《极乐迪斯科》和《风之旅人》。它们都很适合观察一个清晰核心体验如何长成完整游戏。\n\n原句:\n> 灵感泡泡 给我推荐10个人生必玩游戏清单\n> 记在test项目里\n\n关联:[[必玩游戏参照系]]、[[玩法反推引擎]]、[[失败收藏]]、[[游戏记忆]]", "html": "<p>这份人生必玩游戏清单偏向人生体验和游戏设计启发,可以作为独立游戏研究的参照系。</p><p>推荐清单包括:《塞尔达传说:旷野之息》看自由探索,《超级马力欧 奥德赛》看操作快乐,《传送门 2》看机制设计,《Outer Wilds》看好奇心驱动,《极乐迪斯科》看文字与选择,《黑暗之魂》看失败学习,《Hades》看死亡循环叙事,《我的世界》看创造力本身,《风之旅人》看无语言情绪体验,《旺达与巨像》看极简与孤独感。</p><p>如果是为了研究独立游戏,最值得优先拆的是《Outer Wilds》《Hades》《极乐迪斯科》和《风之旅人》。它们都很适合观察一个清晰核心体验如何长成完整游戏。</p><p>原句:</p><blockquote>灵感泡泡 给我推荐10个人生必玩游戏清单<br>记在test项目里</blockquote><p>关联:<a class=\"wl\" data-id=\"必玩游戏参照系\">必玩游戏参照系</a>、<a class=\"wl\" data-id=\"玩法反推引擎\">玩法反推引擎</a>、<a class=\"wl\" data-id=\"失败收藏\">失败收藏</a>、<a class=\"wl\" data-id=\"游戏记忆\">游戏记忆</a></p>", "links": ["必玩游戏参照系", "玩法反推引擎", "失败收藏", "游戏记忆"], "suggestions": ["如果把「人生必玩游戏清单」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「人生必玩游戏清单」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、游戏」换一个完全不同领域,「人生必玩游戏清单」会变成什么?", "从用户情绪看,「人生必玩游戏清单」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「必玩游戏参照系」继续发散,它和「人生必玩游戏清单」能组合出一个什么新方向?"], "ghost": false}, {"id": "人生必看电影清单", "date": "2026-06-14", "created_at": "2026-06-14T00:18:50+08:00", "modified": 1781367530.2931938, "path": "test/人生必看电影清单.md", "project": "test", "topics": ["产品", "游戏"], "body": "这份人生必看电影清单偏向人生体验和影像表达启发,可以作为创作研究的参照系。\n\n推荐清单包括:《肖申克的救赎》看希望与自由,《教父》看权力、家族与命运,《千与千寻》看成长、迷失与找回自己,《阿甘正传》看时代、命运和纯真,《辛德勒的名单》看人性与历史重量,《盗梦空间》看梦境、结构和概念叙事,《星际穿越》看爱、时间与宇宙尺度,《寄生虫》看阶层、空间和黑色幽默,《海上钢琴师》看天赋、孤独与选择,《美丽人生》看苦难中的想象力与爱。\n\n如果从创作启发看,最值得优先拆的是《千与千寻》《寄生虫》《盗梦空间》和《美丽人生》:它们都很会把一个核心概念变成完整世界。\n\n原句:\n> 再给我推荐10个人生必看电影吧\n> 也记下来\n\n关联:[[人生必玩游戏清单]]、[[必玩游戏参照系]]、[[游戏记忆]]", "html": "<p>这份人生必看电影清单偏向人生体验和影像表达启发,可以作为创作研究的参照系。</p><p>推荐清单包括:《肖申克的救赎》看希望与自由,《教父》看权力、家族与命运,《千与千寻》看成长、迷失与找回自己,《阿甘正传》看时代、命运和纯真,《辛德勒的名单》看人性与历史重量,《盗梦空间》看梦境、结构和概念叙事,《星际穿越》看爱、时间与宇宙尺度,《寄生虫》看阶层、空间和黑色幽默,《海上钢琴师》看天赋、孤独与选择,《美丽人生》看苦难中的想象力与爱。</p><p>如果从创作启发看,最值得优先拆的是《千与千寻》《寄生虫》《盗梦空间》和《美丽人生》:它们都很会把一个核心概念变成完整世界。</p><p>原句:</p><blockquote>再给我推荐10个人生必看电影吧<br>也记下来</blockquote><p>关联:<a class=\"wl\" data-id=\"人生必玩游戏清单\">人生必玩游戏清单</a>、<a class=\"wl\" data-id=\"必玩游戏参照系\">必玩游戏参照系</a>、<a class=\"wl\" data-id=\"游戏记忆\">游戏记忆</a></p>", "links": ["人生必玩游戏清单", "必玩游戏参照系", "游戏记忆"], "suggestions": ["如果把「人生必看电影清单」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「人生必看电影清单」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、游戏」换一个完全不同领域,「人生必看电影清单」会变成什么?", "从用户情绪看,「人生必看电影清单」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「人生必玩游戏清单」继续发散,它和「人生必看电影清单」能组合出一个什么新方向?"], "ghost": false}, {"id": "必玩游戏参照系", "date": "2026-06-14", "created_at": "2026-06-14T00:08:59+08:00", "modified": 1781366939.256522, "path": "test/必玩游戏参照系.md", "project": "test", "topics": ["产品", "游戏"], "body": "这份人生必玩游戏清单可以作为独立游戏研究的参照系,重点不是补课打卡,而是看不同游戏如何把一个核心体验做到极致。\n\n推荐清单包括:《塞尔达传说:旷野之息》看自由探索,《超级马力欧 奥德赛》看操作快乐,《传送门 2》看机制设计和幽默叙事,《Outer Wilds》看好奇心驱动,《极乐迪斯科》看文字和选择,《黑暗之魂》看失败学习和世界叙事,《Hades》看死亡循环和叙事推进,《我的世界》看玩家创造力,《风之旅人》看无语言的情绪体验,《旺达与巨像》看极简世界里的孤独感。\n\n对独立游戏发散来说,最值得拆的是《Outer Wilds》《Hades》《极乐迪斯科》和《风之旅人》:它们都不是靠单纯堆内容取胜,而是从一个非常清晰的核心体验长出来。\n\n原句:\n> 灵感泡泡帮我在test项目下 记一下10个推荐人生游戏清单\n\n关联:[[玩法反推引擎]]、[[旁观型独立游戏]]、[[失败收藏]]、[[游戏记忆]]", "html": "<p>这份人生必玩游戏清单可以作为独立游戏研究的参照系,重点不是补课打卡,而是看不同游戏如何把一个核心体验做到极致。</p><p>推荐清单包括:《塞尔达传说:旷野之息》看自由探索,《超级马力欧 奥德赛》看操作快乐,《传送门 2》看机制设计和幽默叙事,《Outer Wilds》看好奇心驱动,《极乐迪斯科》看文字和选择,《黑暗之魂》看失败学习和世界叙事,《Hades》看死亡循环和叙事推进,《我的世界》看玩家创造力,《风之旅人》看无语言的情绪体验,《旺达与巨像》看极简世界里的孤独感。</p><p>对独立游戏发散来说,最值得拆的是《Outer Wilds》《Hades》《极乐迪斯科》和《风之旅人》:它们都不是靠单纯堆内容取胜,而是从一个非常清晰的核心体验长出来。</p><p>原句:</p><blockquote>灵感泡泡帮我在test项目下 记一下10个推荐人生游戏清单</blockquote><p>关联:<a class=\"wl\" data-id=\"玩法反推引擎\">玩法反推引擎</a>、<a class=\"wl\" data-id=\"旁观型独立游戏\">旁观型独立游戏</a>、<a class=\"wl\" data-id=\"失败收藏\">失败收藏</a>、<a class=\"wl\" data-id=\"游戏记忆\">游戏记忆</a></p>", "links": ["玩法反推引擎", "旁观型独立游戏", "失败收藏", "游戏记忆"], "suggestions": ["如果把「必玩游戏参照系」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「必玩游戏参照系」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、游戏」换一个完全不同领域,「必玩游戏参照系」会变成什么?", "从用户情绪看,「必玩游戏参照系」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「玩法反推引擎」继续发散,它和「必玩游戏参照系」能组合出一个什么新方向?"], "ghost": false}, {"id": "原句锚点", "date": "2026-06-11", "created_at": "2026-06-11T22:53:44+08:00", "modified": 1781189645.4518468, "path": "原句锚点.md", "project": "", "topics": ["产品", "AI", "交互"], "body": "灵感泡泡不能只记录整理后的结论,还应该保存用户说话时的重要原句。因为原句里有语气、犹豫、强调和真实边界,这些东西如果只被总结成产品语言,时间久了会丢失。\n\n原句可以作为每个泡泡的\"锚点\":先保留一两句最关键的原话,再写整理后的想法。这样以后回看时,不只是看到\"这个想法是什么\",还能想起它当时是怎么从聊天里冒出来的。尤其是产品判断、命名、交互边界和用户很在意的点,原句比概括更可信。\n\n原句:\n> 包括用户说的话里重要的原句是不是也得记录下来啊 我觉得这个很重要\n\n关联:[[钓岛三层结构]]、[[岛内状态弹窗]]、[[鱼获记录]]", "html": "<p>灵感泡泡不能只记录整理后的结论,还应该保存用户说话时的重要原句。因为原句里有语气、犹豫、强调和真实边界,这些东西如果只被总结成产品语言,时间久了会丢失。</p><p>原句可以作为每个泡泡的&quot;锚点&quot;:先保留一两句最关键的原话,再写整理后的想法。这样以后回看时,不只是看到&quot;这个想法是什么&quot;,还能想起它当时是怎么从聊天里冒出来的。尤其是产品判断、命名、交互边界和用户很在意的点,原句比概括更可信。</p><p>原句:</p><blockquote>包括用户说的话里重要的原句是不是也得记录下来啊 我觉得这个很重要</blockquote><p>关联:<a class=\"wl\" data-id=\"钓岛三层结构\">钓岛三层结构</a>、<a class=\"wl\" data-id=\"岛内状态弹窗\">岛内状态弹窗</a>、<a class=\"wl\" data-id=\"鱼获记录\">鱼获记录</a></p>", "links": ["钓岛三层结构", "岛内状态弹窗", "鱼获记录"], "suggestions": ["如果把「原句锚点」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「原句锚点」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、AI」换一个完全不同领域,「原句锚点」会变成什么?", "从用户情绪看,「原句锚点」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「钓岛三层结构」继续发散,它和「原句锚点」能组合出一个什么新方向?"], "ghost": false}, {"id": "多钓手隐喻", "date": "2026-06-11", "created_at": "2026-06-11T17:39:54+08:00", "modified": 1781189233.8421319, "path": "多钓手隐喻.md", "project": "", "topics": ["AI", "游戏", "交互"], "body": "钓鱼很适合表达多 agent 协作,因为它不是\"谁最快冲线\",而是\"谁在不同水域里钓到了有价值的东西\"。每个钓手可以代表一个 agent,每个钓点代表一种任务方向或资料来源。\n\n比如研究员 agent 在深水区钓事实、资料、引用;产品经理 agent 在码头边钓用户场景和优先级;设计师 agent 在芦苇旁钓视觉隐喻和交互细节;工程师 agent 在石头边钓实现方案、风险和边界条件;反例 agent 在阴影处钓漏洞和不靠谱的地方。\n\n等待时用户看到的不是抽象进度条,而是鱼漂动了、鱼线绷紧、有人换饵、有人换钓点、有人钓上水草。鱼代表产出:小鱼是普通观点,大鱼是关键洞察,稀有鱼是重大突破,水草和破罐头是无效尝试。\n\n这个隐喻比赛马更适合复杂任务。赛马强调速度和胜负,钓鱼强调探索和收获。多 agent 不是一定要竞争,很多时候是在不同方向同时试探,最后由主 AI 把各个钓手的鱼挑出来,整理成最终答案。\n\n关联:[[Agent桌面观察器]]、[[第三者闲置游戏]]、[[鱼获记录]]、[[状态游戏化]]", "html": "<p>钓鱼很适合表达多 agent 协作,因为它不是&quot;谁最快冲线&quot;,而是&quot;谁在不同水域里钓到了有价值的东西&quot;。每个钓手可以代表一个 agent,每个钓点代表一种任务方向或资料来源。</p><p>比如研究员 agent 在深水区钓事实、资料、引用;产品经理 agent 在码头边钓用户场景和优先级;设计师 agent 在芦苇旁钓视觉隐喻和交互细节;工程师 agent 在石头边钓实现方案、风险和边界条件;反例 agent 在阴影处钓漏洞和不靠谱的地方。</p><p>等待时用户看到的不是抽象进度条,而是鱼漂动了、鱼线绷紧、有人换饵、有人换钓点、有人钓上水草。鱼代表产出:小鱼是普通观点,大鱼是关键洞察,稀有鱼是重大突破,水草和破罐头是无效尝试。</p><p>这个隐喻比赛马更适合复杂任务。赛马强调速度和胜负,钓鱼强调探索和收获。多 agent 不是一定要竞争,很多时候是在不同方向同时试探,最后由主 AI 把各个钓手的鱼挑出来,整理成最终答案。</p><p>关联:<a class=\"wl\" data-id=\"Agent桌面观察器\">Agent桌面观察器</a>、<a class=\"wl\" data-id=\"第三者闲置游戏\">第三者闲置游戏</a>、<a class=\"wl\" data-id=\"鱼获记录\">鱼获记录</a>、<a class=\"wl\" data-id=\"状态游戏化\">状态游戏化</a></p>", "links": ["Agent桌面观察器", "第三者闲置游戏", "鱼获记录", "状态游戏化"], "suggestions": ["如果把「多钓手隐喻」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「多钓手隐喻」最可能不成立、最容易变无聊的地方在哪里?", "围绕「AI、游戏」换一个完全不同领域,「多钓手隐喻」会变成什么?", "从用户情绪看,「多钓手隐喻」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「Agent桌面观察器」继续发散,它和「多钓手隐喻」能组合出一个什么新方向?"], "ghost": false}, {"id": "失败收藏", "date": "2026-06-13", "created_at": "2026-06-13T22:04:43+08:00", "modified": 1781359482.0828629, "path": "失败收藏.md", "project": "", "topics": ["产品", "游戏"], "body": "独立游戏可以把失败从惩罚改成收藏。每一次失败不只是重开,而是生成一个遗物、一张照片、一段墓志铭、一条小传闻,甚至是一件会留在世界里的痕迹。\n\n这样玩家不是只为了赢才玩,也会为了“看看这次失败会留下什么”继续尝试。失败变成审美和档案,游戏的情绪就会柔软很多,也很适合小团队做出记忆点。\n\n原句:\n> 我觉得我们可以去发散一下有关如何去做一个独立游戏的想法\n\n关联:[[鱼获记录]]、[[第三者闲置游戏]]、[[状态游戏化]]、[[游戏记忆]]", "html": "<p>独立游戏可以把失败从惩罚改成收藏。每一次失败不只是重开,而是生成一个遗物、一张照片、一段墓志铭、一条小传闻,甚至是一件会留在世界里的痕迹。</p><p>这样玩家不是只为了赢才玩,也会为了“看看这次失败会留下什么”继续尝试。失败变成审美和档案,游戏的情绪就会柔软很多,也很适合小团队做出记忆点。</p><p>原句:</p><blockquote>我觉得我们可以去发散一下有关如何去做一个独立游戏的想法</blockquote><p>关联:<a class=\"wl\" data-id=\"鱼获记录\">鱼获记录</a>、<a class=\"wl\" data-id=\"第三者闲置游戏\">第三者闲置游戏</a>、<a class=\"wl\" data-id=\"状态游戏化\">状态游戏化</a>、<a class=\"wl\" data-id=\"游戏记忆\">游戏记忆</a></p>", "links": ["鱼获记录", "第三者闲置游戏", "状态游戏化", "游戏记忆"], "suggestions": ["如果把「失败收藏」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「失败收藏」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、游戏」换一个完全不同领域,「失败收藏」会变成什么?", "从用户情绪看,「失败收藏」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「鱼获记录」继续发散,它和「失败收藏」能组合出一个什么新方向?"], "ghost": false}, {"id": "岛内状态弹窗", "date": "2026-06-11", "created_at": "2026-06-11T22:24:44+08:00", "modified": 1781189645.79164, "path": "岛内状态弹窗.md", "project": "", "topics": ["产品", "AI", "交互"], "body": "用户希望能在 Fishing Agents 的小岛里看到所有 agents 的真实情况,所以真实监控层应该用\"岛内弹窗\"承载,而不是把信息直接堆在小岛表面。小岛负责可爱和状态感,弹窗负责真实、具体、可展开。\n\n原句:\n> 就是用那种弹窗的模式在我们的岛里 因为用户还是希望能在岛里看到所有agents的真实情况的\n\n每个钓手都可以点开一张状态卡:当前在做什么、正在用什么工具、最近一次进展、是否等待权限、是否卡住、是否失败、有没有产出预览。这个弹窗可以保留钓鱼语言,比如\"鱼漂有动静\"、\"鱼线打结\"、\"钓上水草\",但背后一定对应真实 agent 事件。\n\n弹窗最好有两层:第一层是给普通用户看的状态摘要,第二层是展开后的详细日志或工具事件。这样既能满足\"我想知道它们到底在干嘛\"的安全感,也不会把桌面小岛变成复杂监控面板。\n\n关联:[[钓岛三层结构]]、[[Mac版小钓岛]]、[[Agent桌面观察器]]、[[多钓手隐喻]]、[[鱼获记录]]、[[原句锚点]]", "html": "<p>用户希望能在 Fishing Agents 的小岛里看到所有 agents 的真实情况,所以真实监控层应该用&quot;岛内弹窗&quot;承载,而不是把信息直接堆在小岛表面。小岛负责可爱和状态感,弹窗负责真实、具体、可展开。</p><p>原句:</p><blockquote>就是用那种弹窗的模式在我们的岛里 因为用户还是希望能在岛里看到所有agents的真实情况的</blockquote><p>每个钓手都可以点开一张状态卡:当前在做什么、正在用什么工具、最近一次进展、是否等待权限、是否卡住、是否失败、有没有产出预览。这个弹窗可以保留钓鱼语言,比如&quot;鱼漂有动静&quot;、&quot;鱼线打结&quot;、&quot;钓上水草&quot;,但背后一定对应真实 agent 事件。</p><p>弹窗最好有两层:第一层是给普通用户看的状态摘要,第二层是展开后的详细日志或工具事件。这样既能满足&quot;我想知道它们到底在干嘛&quot;的安全感,也不会把桌面小岛变成复杂监控面板。</p><p>关联:<a class=\"wl\" data-id=\"钓岛三层结构\">钓岛三层结构</a>、<a class=\"wl\" data-id=\"Mac版小钓岛\">Mac版小钓岛</a>、<a class=\"wl\" data-id=\"Agent桌面观察器\">Agent桌面观察器</a>、<a class=\"wl\" data-id=\"多钓手隐喻\">多钓手隐喻</a>、<a class=\"wl\" data-id=\"鱼获记录\">鱼获记录</a>、<a class=\"wl\" data-id=\"原句锚点\">原句锚点</a></p>", "links": ["钓岛三层结构", "Mac版小钓岛", "Agent桌面观察器", "多钓手隐喻", "鱼获记录", "原句锚点"], "suggestions": ["如果把「岛内状态弹窗」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「岛内状态弹窗」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、AI」换一个完全不同领域,「岛内状态弹窗」会变成什么?", "从用户情绪看,「岛内状态弹窗」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「钓岛三层结构」继续发散,它和「岛内状态弹窗」能组合出一个什么新方向?"], "ghost": false}, {"id": "拍照打卡地点集合", "date": "2026-06-12", "created_at": "2026-06-12T20:30:00+08:00", "modified": 1781267183.0154495, "path": "拍照打卡地点集合.md", "project": "", "topics": ["产品", "交互"], "body": "Picspot 是一个关于拍照打卡地点推荐集合的 app 想法:把适合拍照、出片、约会、城市漫游、旅行顺路打卡的地点收集起来,让用户不只是搜索\"附近有什么\",而是能快速找到\"我现在想拍什么氛围,哪里值得去\"。\n\n这个想法有意思的地方在于,它可以介于地图、相册、攻略和审美收藏之间。核心不一定是大而全的 POI 数据,而是把地点变成可被浏览、收藏、复现的视觉场景:光线、机位、样张、最佳时间、人流、穿搭/道具建议,以及用户真实拍过后的反馈。\n\n原句:\n> 之前我有想过做一个关于拍照打卡地点推荐集合的app\n> 我也让gpt给我写出了prd和readme 我也建好了仓库 Win1011/picspot\n\n关联:[[原句锚点]]、[[产品想法冷启动]]、[[城市审美地图]]", "html": "<p>Picspot 是一个关于拍照打卡地点推荐集合的 app 想法:把适合拍照、出片、约会、城市漫游、旅行顺路打卡的地点收集起来,让用户不只是搜索&quot;附近有什么&quot;,而是能快速找到&quot;我现在想拍什么氛围,哪里值得去&quot;。</p><p>这个想法有意思的地方在于,它可以介于地图、相册、攻略和审美收藏之间。核心不一定是大而全的 POI 数据,而是把地点变成可被浏览、收藏、复现的视觉场景:光线、机位、样张、最佳时间、人流、穿搭/道具建议,以及用户真实拍过后的反馈。</p><p>原句:</p><blockquote>之前我有想过做一个关于拍照打卡地点推荐集合的app<br>我也让gpt给我写出了prd和readme 我也建好了仓库 Win1011/picspot</blockquote><p>关联:<a class=\"wl\" data-id=\"原句锚点\">原句锚点</a>、<a class=\"wl\" data-id=\"产品想法冷启动\">产品想法冷启动</a>、<a class=\"wl\" data-id=\"城市审美地图\">城市审美地图</a></p>", "links": ["原句锚点", "产品想法冷启动", "城市审美地图"], "suggestions": ["如果把「拍照打卡地点集合」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「拍照打卡地点集合」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、交互」换一个完全不同领域,「拍照打卡地点集合」会变成什么?", "从用户情绪看,「拍照打卡地点集合」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「原句锚点」继续发散,它和「拍照打卡地点集合」能组合出一个什么新方向?"], "ghost": false}, {"id": "旁观型独立游戏", "date": "2026-06-13", "created_at": "2026-06-13T22:04:42+08:00", "modified": 1781359482.0827463, "path": "旁观型独立游戏.md", "project": "", "topics": ["产品", "游戏", "AI"], "body": "独立游戏可以不从“玩家要拯救什么”开始,而是从“玩家愿意照看什么”开始。玩家不是英雄或主控者,而是旁观一个会自己运转的小系统:一座岛、一个后台世界、一个梦境生态,或者一群正在工作的 agent。\n\n这个方向的好处是它不需要靠巨大内容量撑起来,而是靠“我又观察到一点变化”的亲密感。它和 idle game、ambient game 很近,但更强调玩家和系统之间的轻触关系:不用一直操作,但每次回来都能读到状态和故事。\n\n原句:\n> 我觉得我们可以去发散一下有关如何去做一个独立游戏的想法\n\n关联:[[第三者闲置游戏]]、[[等待剧场]]、[[状态游戏化]]、[[Agent桌面观察器]]", "html": "<p>独立游戏可以不从“玩家要拯救什么”开始,而是从“玩家愿意照看什么”开始。玩家不是英雄或主控者,而是旁观一个会自己运转的小系统:一座岛、一个后台世界、一个梦境生态,或者一群正在工作的 agent。</p><p>这个方向的好处是它不需要靠巨大内容量撑起来,而是靠“我又观察到一点变化”的亲密感。它和 idle game、ambient game 很近,但更强调玩家和系统之间的轻触关系:不用一直操作,但每次回来都能读到状态和故事。</p><p>原句:</p><blockquote>我觉得我们可以去发散一下有关如何去做一个独立游戏的想法</blockquote><p>关联:<a class=\"wl\" data-id=\"第三者闲置游戏\">第三者闲置游戏</a>、<a class=\"wl\" data-id=\"等待剧场\">等待剧场</a>、<a class=\"wl\" data-id=\"状态游戏化\">状态游戏化</a>、<a class=\"wl\" data-id=\"Agent桌面观察器\">Agent桌面观察器</a></p>", "links": ["第三者闲置游戏", "等待剧场", "状态游戏化", "Agent桌面观察器"], "suggestions": ["如果把「旁观型独立游戏」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「旁观型独立游戏」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、游戏」换一个完全不同领域,「旁观型独立游戏」会变成什么?", "从用户情绪看,「旁观型独立游戏」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「第三者闲置游戏」继续发散,它和「旁观型独立游戏」能组合出一个什么新方向?"], "ghost": false}, {"id": "状态游戏化", "date": "2026-06-11", "created_at": "2026-06-11T17:39:54+08:00", "modified": 1781189234.1724012, "path": "状态游戏化.md", "project": "", "topics": ["产品", "AI", "交互"], "body": "Agent 的真实工作状态可以被映射成游戏动作。这样用户看到的不是抽象日志,而是一个能被快速理解的状态世界:开始任务、调用工具、工具返回、卡住、等待确认、完成,都能变成可视化动作。\n\n一组可能的映射是: `agent.started` 等于钓手出发或小人上岛; `tool.called` 等于抛竿、翻书、打开工具箱; `tool.finished` 等于鱼漂晃动或拿到材料; `agent.blocked` 等于鱼线打结、钓到水草、站在原地冒问号; `agent.needs_input` 等于小人举牌等用户; `agent.completed` 等于收线、插旗、把鱼放进今日鱼篓。\n\n这里最重要的是克制。它不应该假装展示 AI 的完整思考过程,也不应该把每个底层细节都可视化成噪音。它更像一个状态翻译层:把真正影响用户判断的信息翻译成温和、可爱的动作。\n\n如果做得好,用户会少一点焦虑:他不用打开日志也知道后台还活着、卡在哪里、有没有成果。这个工具的价值不是娱乐本身,而是把 agent 的不可见劳动变成可感知、可回看的协作过程。\n\n关联:[[Agent桌面观察器]]、[[等待剧场]]、[[多钓手隐喻]]、[[鱼获记录]]", "html": "<p>Agent 的真实工作状态可以被映射成游戏动作。这样用户看到的不是抽象日志,而是一个能被快速理解的状态世界:开始任务、调用工具、工具返回、卡住、等待确认、完成,都能变成可视化动作。</p><p>一组可能的映射是: `agent.started` 等于钓手出发或小人上岛; `tool.called` 等于抛竿、翻书、打开工具箱; `tool.finished` 等于鱼漂晃动或拿到材料; `agent.blocked` 等于鱼线打结、钓到水草、站在原地冒问号; `agent.needs_input` 等于小人举牌等用户; `agent.completed` 等于收线、插旗、把鱼放进今日鱼篓。</p><p>这里最重要的是克制。它不应该假装展示 AI 的完整思考过程,也不应该把每个底层细节都可视化成噪音。它更像一个状态翻译层:把真正影响用户判断的信息翻译成温和、可爱的动作。</p><p>如果做得好,用户会少一点焦虑:他不用打开日志也知道后台还活着、卡在哪里、有没有成果。这个工具的价值不是娱乐本身,而是把 agent 的不可见劳动变成可感知、可回看的协作过程。</p><p>关联:<a class=\"wl\" data-id=\"Agent桌面观察器\">Agent桌面观察器</a>、<a class=\"wl\" data-id=\"等待剧场\">等待剧场</a>、<a class=\"wl\" data-id=\"多钓手隐喻\">多钓手隐喻</a>、<a class=\"wl\" data-id=\"鱼获记录\">鱼获记录</a></p>", "links": ["Agent桌面观察器", "等待剧场", "多钓手隐喻", "鱼获记录"], "suggestions": ["如果把「状态游戏化」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「状态游戏化」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、AI」换一个完全不同领域,「状态游戏化」会变成什么?", "从用户情绪看,「状态游戏化」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「Agent桌面观察器」继续发散,它和「状态游戏化」能组合出一个什么新方向?"], "ghost": false}, {"id": "玩法反推引擎", "date": "2026-06-13", "created_at": "2026-06-13T22:25:25+08:00", "modified": 1781360864.9750097, "path": "玩法反推引擎.md", "project": "", "topics": ["产品", "游戏"], "body": "独立游戏开发的引擎选择不应该先从“哪个引擎最强”开始,而应该从玩法的存在方式反推:它是一个需要大量关卡和平台发行的 2D 游戏,一个靠真实桌面状态运行的 ambient game,一个强调高表现力的 3D 世界,还是一个先验证手感和循环的小原型。\n\n如果方向贴近旁观、等待、桌面常驻、轻互动,像 Fishing Agents 或现实等待游戏化那类东西,SwiftUI + SpriteKit/Canvas 这种原生路线反而可能比 Unity 更自然,因为窗口、菜单栏、系统权限、桌面状态和轻量 UI 都是产品本体的一部分。如果要做面向 Steam 的传统 2D/2.5D 独立游戏,Godot 或 Unity 更像主路;如果游戏卖点是电影级 3D 画面、复杂光照或大型场景,才更像 Unreal 的地盘。\n\n原句:\n> 灵感泡泡 我们一起探讨下有关独立游戏开发的引擎选择吧\n\n关联:[[旁观型独立游戏]]、[[现实等待游戏化]]、[[失败收藏]]、[[Mac版小钓岛]]、[[状态游戏化]]", "html": "<p>独立游戏开发的引擎选择不应该先从“哪个引擎最强”开始,而应该从玩法的存在方式反推:它是一个需要大量关卡和平台发行的 2D 游戏,一个靠真实桌面状态运行的 ambient game,一个强调高表现力的 3D 世界,还是一个先验证手感和循环的小原型。</p><p>如果方向贴近旁观、等待、桌面常驻、轻互动,像 Fishing Agents 或现实等待游戏化那类东西,SwiftUI + SpriteKit/Canvas 这种原生路线反而可能比 Unity 更自然,因为窗口、菜单栏、系统权限、桌面状态和轻量 UI 都是产品本体的一部分。如果要做面向 Steam 的传统 2D/2.5D 独立游戏,Godot 或 Unity 更像主路;如果游戏卖点是电影级 3D 画面、复杂光照或大型场景,才更像 Unreal 的地盘。</p><p>原句:</p><blockquote>灵感泡泡 我们一起探讨下有关独立游戏开发的引擎选择吧</blockquote><p>关联:<a class=\"wl\" data-id=\"旁观型独立游戏\">旁观型独立游戏</a>、<a class=\"wl\" data-id=\"现实等待游戏化\">现实等待游戏化</a>、<a class=\"wl\" data-id=\"失败收藏\">失败收藏</a>、<a class=\"wl\" data-id=\"Mac版小钓岛\">Mac版小钓岛</a>、<a class=\"wl\" data-id=\"状态游戏化\">状态游戏化</a></p>", "links": ["旁观型独立游戏", "现实等待游戏化", "失败收藏", "Mac版小钓岛", "状态游戏化"], "suggestions": ["如果把「玩法反推引擎」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「玩法反推引擎」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、游戏」换一个完全不同领域,「玩法反推引擎」会变成什么?", "从用户情绪看,「玩法反推引擎」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「旁观型独立游戏」继续发散,它和「玩法反推引擎」能组合出一个什么新方向?"], "ghost": false}, {"id": "现实等待游戏化", "date": "2026-06-13", "created_at": "2026-06-13T22:04:44+08:00", "modified": 1781359482.0830858, "path": "现实等待游戏化.md", "project": "", "topics": ["产品", "游戏", "交互"], "body": "现实里的等待时间也可以成为独立游戏的材料:下载、排队、睡前、番茄钟间隙、AI agent 执行任务,这些空白不一定只是 loading,也可以变成游戏里的潮汐、天气、生长或小剧场。\n\n这条想法有意思的地方在于,游戏不抢走主任务,而是贴着现实生活的缝隙生长。玩家不需要专门打开一场大冒险,只要在等待中看见一点世界变化,就会觉得时间没有完全空掉。\n\n原句:\n> 我觉得我们可以去发散一下有关如何去做一个独立游戏的想法\n\n关联:[[等待剧场]]、[[第三者闲置游戏]]、[[Mac版小钓岛]]、[[状态游戏化]]", "html": "<p>现实里的等待时间也可以成为独立游戏的材料:下载、排队、睡前、番茄钟间隙、AI agent 执行任务,这些空白不一定只是 loading,也可以变成游戏里的潮汐、天气、生长或小剧场。</p><p>这条想法有意思的地方在于,游戏不抢走主任务,而是贴着现实生活的缝隙生长。玩家不需要专门打开一场大冒险,只要在等待中看见一点世界变化,就会觉得时间没有完全空掉。</p><p>原句:</p><blockquote>我觉得我们可以去发散一下有关如何去做一个独立游戏的想法</blockquote><p>关联:<a class=\"wl\" data-id=\"等待剧场\">等待剧场</a>、<a class=\"wl\" data-id=\"第三者闲置游戏\">第三者闲置游戏</a>、<a class=\"wl\" data-id=\"Mac版小钓岛\">Mac版小钓岛</a>、<a class=\"wl\" data-id=\"状态游戏化\">状态游戏化</a></p>", "links": ["等待剧场", "第三者闲置游戏", "Mac版小钓岛", "状态游戏化"], "suggestions": ["如果把「现实等待游戏化」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「现实等待游戏化」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、游戏」换一个完全不同领域,「现实等待游戏化」会变成什么?", "从用户情绪看,「现实等待游戏化」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「等待剧场」继续发散,它和「现实等待游戏化」能组合出一个什么新方向?"], "ghost": false}, {"id": "第三者闲置游戏", "date": "2026-06-11", "created_at": "2026-06-11T17:39:54+08:00", "modified": 1781189234.3362613, "path": "第三者闲置游戏.md", "project": "", "topics": ["产品", "游戏", "AI"], "body": "这个工具可以做成一个第三者视角的 agent idle game:用户不是直接操控 agent,而是像看一个小型后台世界运转。它有点像桌面宠物,但比宠物更有信息价值,因为小世界里的动作对应真实 agent 工作。\n\n核心节奏是\"低打扰、可旁观、可轻触\"。用户工作时不用一直盯着它,但每次瞄一眼都能读到状态:哪个 agent 有进展,哪个 agent 卡住,今天产出了什么,有没有钓到一条稀有鱼。用户可以轻轻互动,比如点鱼漂看当前 agent 在干嘛,给某个 agent 换鱼饵表示调整方向,把 agent 拖到新钓点表示切换任务重点,收鱼篓打开今日成果总结。\n\n它不能做成需要持续操作的游戏,因为 AI 工作和用户工作才是主任务。更适合做成 idle game 或 ambient game:默认自动运行,偶尔给用户一个小小选择,让用户感觉自己参与了后台世界,但不会被强行拉走注意力。\n\n可以积累一些轻量成就:今日工作时长、今日鱼获、稀有鱼、空军记录、水草次数、最忙 agent、最会钓洞察的 agent。长期看,它会变成用户和 agent 协作的生活化记录。\n\n关联:[[Agent桌面观察器]]、[[多钓手隐喻]]、[[鱼获记录]]、[[状态游戏化]]", "html": "<p>这个工具可以做成一个第三者视角的 agent idle game:用户不是直接操控 agent,而是像看一个小型后台世界运转。它有点像桌面宠物,但比宠物更有信息价值,因为小世界里的动作对应真实 agent 工作。</p><p>核心节奏是&quot;低打扰、可旁观、可轻触&quot;。用户工作时不用一直盯着它,但每次瞄一眼都能读到状态:哪个 agent 有进展,哪个 agent 卡住,今天产出了什么,有没有钓到一条稀有鱼。用户可以轻轻互动,比如点鱼漂看当前 agent 在干嘛,给某个 agent 换鱼饵表示调整方向,把 agent 拖到新钓点表示切换任务重点,收鱼篓打开今日成果总结。</p><p>它不能做成需要持续操作的游戏,因为 AI 工作和用户工作才是主任务。更适合做成 idle game 或 ambient game:默认自动运行,偶尔给用户一个小小选择,让用户感觉自己参与了后台世界,但不会被强行拉走注意力。</p><p>可以积累一些轻量成就:今日工作时长、今日鱼获、稀有鱼、空军记录、水草次数、最忙 agent、最会钓洞察的 agent。长期看,它会变成用户和 agent 协作的生活化记录。</p><p>关联:<a class=\"wl\" data-id=\"Agent桌面观察器\">Agent桌面观察器</a>、<a class=\"wl\" data-id=\"多钓手隐喻\">多钓手隐喻</a>、<a class=\"wl\" data-id=\"鱼获记录\">鱼获记录</a>、<a class=\"wl\" data-id=\"状态游戏化\">状态游戏化</a></p>", "links": ["Agent桌面观察器", "多钓手隐喻", "鱼获记录", "状态游戏化"], "suggestions": ["如果把「第三者闲置游戏」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「第三者闲置游戏」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、游戏」换一个完全不同领域,「第三者闲置游戏」会变成什么?", "从用户情绪看,「第三者闲置游戏」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「Agent桌面观察器」继续发散,它和「第三者闲置游戏」能组合出一个什么新方向?"], "ghost": false}, {"id": "等待剧场", "date": "2026-06-11", "created_at": "2026-06-11T17:39:54+08:00", "modified": 1781189234.498999, "path": "等待剧场.md", "project": "", "topics": ["产品", "AI", "交互"], "body": "AI 回复前的等待时间不一定只能是一个转圈 loading,它可以被设计成一个\"思考剧场\"。用户发出问题之后,界面里不是静止等待,而是出现一个可旁观的小过程:不同思路被尝试、废稿被丢掉、关键词被捡起来、最终回答慢慢成形。\n\n这个想法的重点不是暴露 AI 的真实推理链,而是用抽象的状态和隐喻,让用户感到\"后台确实在忙\"。比如小人经过\"拆问题\"、\"找资料\"、\"组织结构\"、\"润色语气\"几个站点;或者几个思路角色在剧场里排练,严肃版、直接版、创意版轮流试台词,最后选出一个版本上台。\n\n它比普通 loading 更有情绪价值:等待不再是空白,而是一次小小的旁观。用户可以轻触影响方向,比如\"更大胆\"、\"更实用\"、\"更短\",但互动不能太重,否则 AI 回复出来时会打断用户正在玩的东西。\n\n关联:[[Agent桌面观察器]]、[[状态游戏化]]、[[第三者闲置游戏]]", "html": "<p>AI 回复前的等待时间不一定只能是一个转圈 loading,它可以被设计成一个&quot;思考剧场&quot;。用户发出问题之后,界面里不是静止等待,而是出现一个可旁观的小过程:不同思路被尝试、废稿被丢掉、关键词被捡起来、最终回答慢慢成形。</p><p>这个想法的重点不是暴露 AI 的真实推理链,而是用抽象的状态和隐喻,让用户感到&quot;后台确实在忙&quot;。比如小人经过&quot;拆问题&quot;、&quot;找资料&quot;、&quot;组织结构&quot;、&quot;润色语气&quot;几个站点;或者几个思路角色在剧场里排练,严肃版、直接版、创意版轮流试台词,最后选出一个版本上台。</p><p>它比普通 loading 更有情绪价值:等待不再是空白,而是一次小小的旁观。用户可以轻触影响方向,比如&quot;更大胆&quot;、&quot;更实用&quot;、&quot;更短&quot;,但互动不能太重,否则 AI 回复出来时会打断用户正在玩的东西。</p><p>关联:<a class=\"wl\" data-id=\"Agent桌面观察器\">Agent桌面观察器</a>、<a class=\"wl\" data-id=\"状态游戏化\">状态游戏化</a>、<a class=\"wl\" data-id=\"第三者闲置游戏\">第三者闲置游戏</a></p>", "links": ["Agent桌面观察器", "状态游戏化", "第三者闲置游戏"], "suggestions": ["如果把「等待剧场」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「等待剧场」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、AI」换一个完全不同领域,「等待剧场」会变成什么?", "从用户情绪看,「等待剧场」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「Agent桌面观察器」继续发散,它和「等待剧场」能组合出一个什么新方向?"], "ghost": false}, {"id": "钓岛三层结构", "date": "2026-06-11", "created_at": "2026-06-11T22:24:43+08:00", "modified": 1781189645.6230562, "path": "钓岛三层结构.md", "project": "", "topics": ["产品", "AI", "交互"], "body": "Fishing Agents 不能只在 2 和 3 之间选择,也不能把真实状态监控丢掉。更准确的结构是 1、2、3 都要:小岛提供常驻陪伴感,真实状态弹窗提供可信度和可控感,鱼获记录提供一天结束后的收成感和记忆。\n\n原句:\n> 我也偏向2和3 但是1还是要做的 就是用那种弹窗的模式在我们的岛里 因为用户还是希望能在岛里看到所有agents的真实情况的 所以123都得需要\n\n这三层的分工可以很清楚:2 是外壳,让用户觉得桌面上真的有一群 agent 在钓鱼;1 是骨架,让这些钓手的动作和真实 agent 状态绑定,不是纯表演;3 是记忆,把真实任务结束后的成果沉淀成今日鱼篓、稀有鱼、水草和长期图鉴。\n\n关键边界是:小岛本体不要塞满信息,它只表达状态和生命感;用户需要细节时,通过岛内弹窗看每个 agent 的真实情况;任务结束后,再把过程和结果进入鱼获记录。这样 Fishing Agents 既不只是可爱桌宠,也不只是日志面板,而是一个有生命感的 AI 工作界面。\n\n关联:[[Mac版小钓岛]]、[[岛内状态弹窗]]、[[鱼获记录]]、[[多钓手隐喻]]、[[状态游戏化]]、[[原句锚点]]", "html": "<p>Fishing Agents 不能只在 2 和 3 之间选择,也不能把真实状态监控丢掉。更准确的结构是 1、2、3 都要:小岛提供常驻陪伴感,真实状态弹窗提供可信度和可控感,鱼获记录提供一天结束后的收成感和记忆。</p><p>原句:</p><blockquote>我也偏向2和3 但是1还是要做的 就是用那种弹窗的模式在我们的岛里 因为用户还是希望能在岛里看到所有agents的真实情况的 所以123都得需要</blockquote><p>这三层的分工可以很清楚:2 是外壳,让用户觉得桌面上真的有一群 agent 在钓鱼;1 是骨架,让这些钓手的动作和真实 agent 状态绑定,不是纯表演;3 是记忆,把真实任务结束后的成果沉淀成今日鱼篓、稀有鱼、水草和长期图鉴。</p><p>关键边界是:小岛本体不要塞满信息,它只表达状态和生命感;用户需要细节时,通过岛内弹窗看每个 agent 的真实情况;任务结束后,再把过程和结果进入鱼获记录。这样 Fishing Agents 既不只是可爱桌宠,也不只是日志面板,而是一个有生命感的 AI 工作界面。</p><p>关联:<a class=\"wl\" data-id=\"Mac版小钓岛\">Mac版小钓岛</a>、<a class=\"wl\" data-id=\"岛内状态弹窗\">岛内状态弹窗</a>、<a class=\"wl\" data-id=\"鱼获记录\">鱼获记录</a>、<a class=\"wl\" data-id=\"多钓手隐喻\">多钓手隐喻</a>、<a class=\"wl\" data-id=\"状态游戏化\">状态游戏化</a>、<a class=\"wl\" data-id=\"原句锚点\">原句锚点</a></p>", "links": ["Mac版小钓岛", "岛内状态弹窗", "鱼获记录", "多钓手隐喻", "状态游戏化", "原句锚点"], "suggestions": ["如果把「钓岛三层结构」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「钓岛三层结构」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、AI」换一个完全不同领域,「钓岛三层结构」会变成什么?", "从用户情绪看,「钓岛三层结构」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「Mac版小钓岛」继续发散,它和「钓岛三层结构」能组合出一个什么新方向?"], "ghost": false}, {"id": "鱼获记录", "date": "2026-06-11", "created_at": "2026-06-11T17:39:55+08:00", "modified": 1781189234.827098, "path": "鱼获记录.md", "project": "", "topics": ["产品", "游戏", "AI"], "body": "如果 agent 观察器采用钓鱼隐喻,就可以自然产生\"鱼获记录\"。这不是单纯的游戏分数,而是用户和 AI 今天一起完成了什么的轻量总结。\n\n鱼获可以包括:今日钓鱼时间,也就是 agent 工作总时长;今日鱼数,对应完成的任务、有效结论或中间产物;稀有鱼,对应关键洞察、根因定位、漂亮方案;水草次数,对应无效尝试或失败路径;最忙钓手,对应最活跃的 agent;空军记录,对应跑了很久但没有有效产出的时段。\n\n这个记录会让后台工作变得有记忆。用户一天结束时可以\"收鱼篓\",看到今天 AI 到底帮自己做了多少事。长期还能形成鱼图鉴:不同项目、不同 agent、不同任务类型会出现不同鱼种。比如代码项目里常见 bug 鱼、测试鱼、重构鱼;产品项目里常见洞察鱼、竞品鱼、用户痛点鱼。\n\n鱼获记录的关键是要好玩但不幼稚。它可以很轻,像 Notion 里的日历和统计小组件,但用更有生命力的方式呈现。用户不是为了刷分而用 AI,而是在工作之后获得一点\"今天真的钓到东西了\"的反馈。\n\n关联:[[多钓手隐喻]]、[[第三者闲置游戏]]、[[状态游戏化]]、[[Agent桌面观察器]]", "html": "<p>如果 agent 观察器采用钓鱼隐喻,就可以自然产生&quot;鱼获记录&quot;。这不是单纯的游戏分数,而是用户和 AI 今天一起完成了什么的轻量总结。</p><p>鱼获可以包括:今日钓鱼时间,也就是 agent 工作总时长;今日鱼数,对应完成的任务、有效结论或中间产物;稀有鱼,对应关键洞察、根因定位、漂亮方案;水草次数,对应无效尝试或失败路径;最忙钓手,对应最活跃的 agent;空军记录,对应跑了很久但没有有效产出的时段。</p><p>这个记录会让后台工作变得有记忆。用户一天结束时可以&quot;收鱼篓&quot;,看到今天 AI 到底帮自己做了多少事。长期还能形成鱼图鉴:不同项目、不同 agent、不同任务类型会出现不同鱼种。比如代码项目里常见 bug 鱼、测试鱼、重构鱼;产品项目里常见洞察鱼、竞品鱼、用户痛点鱼。</p><p>鱼获记录的关键是要好玩但不幼稚。它可以很轻,像 Notion 里的日历和统计小组件,但用更有生命力的方式呈现。用户不是为了刷分而用 AI,而是在工作之后获得一点&quot;今天真的钓到东西了&quot;的反馈。</p><p>关联:<a class=\"wl\" data-id=\"多钓手隐喻\">多钓手隐喻</a>、<a class=\"wl\" data-id=\"第三者闲置游戏\">第三者闲置游戏</a>、<a class=\"wl\" data-id=\"状态游戏化\">状态游戏化</a>、<a class=\"wl\" data-id=\"Agent桌面观察器\">Agent桌面观察器</a></p>", "links": ["多钓手隐喻", "第三者闲置游戏", "状态游戏化", "Agent桌面观察器"], "suggestions": ["如果把「鱼获记录」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「鱼获记录」最可能不成立、最容易变无聊的地方在哪里?", "围绕「产品、游戏」换一个完全不同领域,「鱼获记录」会变成什么?", "从用户情绪看,「鱼获记录」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「多钓手隐喻」继续发散,它和「鱼获记录」能组合出一个什么新方向?"], "ghost": false}, {"id": "游戏记忆", "date": null, "created_at": null, "topics": [], "modified": null, "path": null, "project": null, "body": "还没展开的想法——下次聊聊它?", "html": "<p class='ghost-hint'>还没展开的想法——下次聊聊它?</p>", "links": [], "suggestions": ["如果把「游戏记忆」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「游戏记忆」最可能不成立、最容易变无聊的地方在哪里?", "围绕「这个想法」换一个完全不同领域,「游戏记忆」会变成什么?", "从用户情绪看,「游戏记忆」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「另一个旧泡泡」继续发散,它和「游戏记忆」能组合出一个什么新方向?"], "ghost": true}, {"id": "产品想法冷启动", "date": null, "created_at": null, "topics": [], "modified": null, "path": null, "project": null, "body": "还没展开的想法——下次聊聊它?", "html": "<p class='ghost-hint'>还没展开的想法——下次聊聊它?</p>", "links": [], "suggestions": ["如果把「产品想法冷启动」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「产品想法冷启动」最可能不成立、最容易变无聊的地方在哪里?", "围绕「这个想法」换一个完全不同领域,「产品想法冷启动」会变成什么?", "从用户情绪看,「产品想法冷启动」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「另一个旧泡泡」继续发散,它和「产品想法冷启动」能组合出一个什么新方向?"], "ghost": true}, {"id": "城市审美地图", "date": null, "created_at": null, "topics": [], "modified": null, "path": null, "project": null, "body": "还没展开的想法——下次聊聊它?", "html": "<p class='ghost-hint'>还没展开的想法——下次聊聊它?</p>", "links": [], "suggestions": ["如果把「城市审美地图」做成一个最小产品,第一屏应该让用户看到什么?", "反过来想:「城市审美地图」最可能不成立、最容易变无聊的地方在哪里?", "围绕「这个想法」换一个完全不同领域,「城市审美地图」会变成什么?", "从用户情绪看,「城市审美地图」解决的是焦虑、好奇、陪伴、成就感里的哪一种?", "沿着「另一个旧泡泡」继续发散,它和「城市审美地图」能组合出一个什么新方向?"], "ghost": true}], "edges": [[0, 1], [0, 6], [0, 8], [0, 10], [0, 11], [0, 14], [0, 15], [0, 17], [1, 6], [1, 8], [1, 11], [1, 12], [1, 13], [1, 14], [1, 16], [1, 17], [2, 3], [2, 4], [2, 7], [2, 12], [2, 18], [3, 4], [3, 18], [4, 7], [4, 10], [4, 12], [4, 18], [5, 8], [5, 9], [5, 16], [5, 17], [6, 8], [6, 11], [6, 14], [6, 16], [6, 17], [7, 11], [7, 12], [7, 14], [7, 17], [7, 18], [8, 16], [8, 17], [9, 19], [9, 20], [10, 11], [10, 12], [10, 14], [10, 15], [11, 12], [11, 13], [11, 14], [11, 15], [11, 16], [11, 17], [12, 13], [13, 14], [13, 15], [14, 15], [14, 17], [16, 17]], "topics": ["产品", "AI", "交互", "游戏"], "projects": ["test"], "generated": "2026-06-14 00:18"};
+const PALETTE = ['#111111','#343434','#565656','#737373','#8c8c8c','#a3a3a3','#242424','#666666','#4a4a4a','#7f7f7f'];
 const topicColor = {};
 DATA.topics.forEach((t,i)=>topicColor[t]=PALETTE[i%PALETTE.length]);
-const GHOST = '#55556e', PLAIN = '#9d9db8';
+const GHOST = '#b8b8b8', PLAIN = '#666666';
 
 const N = DATA.nodes, E = DATA.edges;
 const deg = N.map(()=>0);
@@ -81,7 +930,147 @@ N.forEach((n,i)=>{
 const byId = {}; N.forEach(n=>byId[n.id]=n);
 const days = [...new Set(N.filter(n=>n.date).map(n=>n.date))].sort();
 document.getElementById('stats').textContent =
-  N.filter(n=>!n.ghost).length + ' 个泡泡 · ' + E.length + ' 条关联 · 跨 ' + days.length + ' 天';
+  N.filter(n=>!n.ghost).length + ' 个泡泡 · ' + (DATA.projects || []).length + ' 个项目 · ' + E.length + ' 条关联 · 跨 ' + days.length + ' 天';
+
+const projectPicker = document.getElementById('project-picker');
+const projectFilterButton = document.getElementById('project-filter-button');
+const projectMenu = document.getElementById('project-menu');
+const projectOptions = document.getElementById('project-options');
+const projectStatus = document.getElementById('project-status');
+const PROJECT_FILTER_STORAGE_KEY = 'linggan-paopao-active-project';
+function validProjectValue(value){
+  value = value || '';
+  if (!value || value === '__free__') return value;
+  return (DATA.projects || []).includes(value) ? value : '';
+}
+function readProjectFilter(){
+  try { return validProjectValue(localStorage.getItem(PROJECT_FILTER_STORAGE_KEY) || ''); }
+  catch (_) { return ''; }
+}
+function saveProjectFilter(value){
+  try {
+    if (value) localStorage.setItem(PROJECT_FILTER_STORAGE_KEY, value);
+    else localStorage.removeItem(PROJECT_FILTER_STORAGE_KEY);
+  } catch (_) {}
+}
+let activeProject = readProjectFilter();
+function setProjectStatus(message, isError=false){
+  projectStatus.textContent = message;
+  projectStatus.classList.toggle('error', isError);
+}
+async function postProjectApi(path, payload){
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  });
+  let data = {};
+  try { data = await res.json(); } catch (_) {}
+  if (!res.ok || data.ok === false) throw new Error(data.error || '项目操作失败');
+  return data;
+}
+function projectNameFor(value){
+  if (!value) return '全部项目';
+  if (value === '__free__') return '自由泡泡';
+  return value;
+}
+function closeProjectMenu(){
+  projectMenu.hidden = true;
+  projectFilterButton.setAttribute('aria-expanded', 'false');
+  setProjectStatus('');
+}
+function openProjectMenu(){
+  renderProjectOptions();
+  projectMenu.hidden = false;
+  projectFilterButton.setAttribute('aria-expanded', 'true');
+}
+function applyProject(value){
+  value = validProjectValue(value);
+  activeProject = value;
+  saveProjectFilter(value);
+  projectFilterButton.textContent = projectNameFor(value);
+  if (selected && !matchesProject(selected)) {
+    panel.classList.remove('open');
+    selected = null;
+  }
+  closeProjectMenu();
+  draw();
+  if (!document.getElementById('view-timeline').hidden) buildTimeline(true);
+}
+function renderProjectOptions(renameFor=''){
+  const rows = [
+    {value: '', label: '全部项目', editable: false},
+    {value: '__free__', label: '自由泡泡', editable: false},
+    ...(DATA.projects || []).map(project=>({value: project, label: project, editable: true}))
+  ];
+  projectOptions.innerHTML = rows.map(row=>{
+    const on = row.value === activeProject ? ' on' : '';
+    const edit = row.editable ? '<button class="project-icon" type="button" data-rename="'+escAttr(row.value)+'" aria-label="改名 '+escAttr(row.label)+'"></button>' : '<span></span>';
+    const form = row.editable ? '<form class="project-inline-form" data-rename-form="'+escAttr(row.value)+'" '+(renameFor===row.value?'':'hidden')+'><input name="new_name" autocomplete="off" value="'+escAttr(row.value)+'"><button type="submit">改名</button></form>' : '';
+    return '<div><div class="project-option-row"><button class="project-option'+on+'" type="button" data-project="'+escAttr(row.value)+'">'+escHtml(row.label)+'</button>'+edit+'</div>'+form+'</div>';
+  }).join('');
+}
+projectFilterButton.addEventListener('click', e => {
+  e.stopPropagation();
+  projectMenu.hidden ? openProjectMenu() : closeProjectMenu();
+});
+document.addEventListener('click', e => {
+  if (!projectPicker.contains(e.target)) closeProjectMenu();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !projectMenu.hidden) closeProjectMenu();
+});
+projectOptions.addEventListener('click', e => {
+  const rename = e.target.closest('[data-rename]');
+  if (rename) {
+    e.stopPropagation();
+    renderProjectOptions(rename.dataset.rename);
+    const input = projectOptions.querySelector('[data-rename-form="'+CSS.escape(rename.dataset.rename)+'"] input');
+    if (input) { input.focus(); input.select(); }
+    return;
+  }
+  const option = e.target.closest('[data-project]');
+  if (option) applyProject(option.dataset.project || '');
+});
+projectOptions.addEventListener('submit', async e => {
+  const form = e.target.closest('[data-rename-form]');
+  if (!form) return;
+  e.preventDefault();
+  const oldName = form.dataset.renameForm;
+  const newName = form.elements.new_name.value.trim();
+  if (!newName) { setProjectStatus('先输入新项目名。', true); return; }
+  const button = form.querySelector('button[type="submit"]');
+  button.disabled = true;
+  setProjectStatus('正在改名项目...');
+  try {
+    await postProjectApi('/api/projects/rename', {old_name: oldName, new_name: newName});
+    if (activeProject === oldName) saveProjectFilter(newName);
+    setProjectStatus('已改名项目,正在刷新图谱。');
+    window.location.reload();
+  } catch (err) {
+    setProjectStatus(err.message || '项目操作失败。', true);
+    button.disabled = false;
+  }
+});
+document.getElementById('project-create-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const button = e.currentTarget.querySelector('button[type="submit"]');
+  const name = document.getElementById('project-create-name').value.trim();
+  if (!name) { setProjectStatus('先输入项目名。', true); return; }
+  setProjectStatus('正在新建项目...');
+  button.disabled = true;
+  try {
+    await postProjectApi('/api/projects', {name});
+    saveProjectFilter(name);
+    setProjectStatus('已新建项目,正在刷新图谱。');
+    window.location.reload();
+  } catch (err) {
+    setProjectStatus(err.message || '项目操作失败。确认当前页面是项目服务打开的,不是普通静态服务。', true);
+    button.disabled = false;
+  }
+});
+projectFilterButton.textContent = projectNameFor(activeProject);
+renderProjectOptions();
 
 // 图例
 const lg = document.getElementById('legend');
@@ -89,8 +1078,254 @@ lg.innerHTML = DATA.topics.map(t=>'<span><i style="background:'+topicColor[t]+'"
   + (N.some(n=>n.ghost) ? '<span><i style="background:'+GHOST+'"></i>幽灵泡泡(还没展开)</span>' : '');
 
 if (!N.length) {
-  document.body.insertAdjacentHTML('beforeend','<div id="empty">还没有泡泡——去找 Claude 聊一场吧 🫧</div>');
+  document.body.insertAdjacentHTML('beforeend','<div id="empty"><div class="empty-card"><div class="empty-icon" aria-hidden="true"></div><div class="empty-kicker">Idea map</div><h2>还没有泡泡。</h2><p>下次聊天里冒出一个念头时,我会把它整理成 Markdown 泡泡,再把关联慢慢织到这张图里。</p></div></div>');
 }
+
+const search = document.getElementById('search');
+let query = '';
+search.addEventListener('input', () => {
+  query = search.value.trim().toLowerCase();
+  draw();
+  if (!document.getElementById('view-timeline').hidden) buildTimeline(true);
+});
+function projectLabel(n){
+  if (n.ghost) return '幽灵泡泡';
+  return n.project || '自由泡泡';
+}
+function matchesProject(n){
+  if (!activeProject) return true;
+  if (activeProject === '__free__') return !n.project && !n.ghost;
+  return n.project === activeProject;
+}
+function matchesQuery(n){
+  if (!query) return true;
+  return n.id.toLowerCase().includes(query)
+    || n.topics.some(t=>t.toLowerCase().includes(query))
+    || String(n.project || '').toLowerCase().includes(query)
+    || String(n.path || '').toLowerCase().includes(query)
+    || n.html.toLowerCase().includes(query);
+}
+function isVisibleNode(n){
+  return matchesProject(n) && matchesQuery(n);
+}
+
+// ---------- 导出 ----------
+const exportBox = document.getElementById('export');
+const exportToggle = document.getElementById('export-toggle');
+const exportStatus = document.getElementById('export-status');
+exportToggle.addEventListener('click', e => {
+  e.stopPropagation();
+  exportBox.classList.toggle('open');
+  exportToggle.setAttribute('aria-expanded', exportBox.classList.contains('open') ? 'true' : 'false');
+});
+document.addEventListener('click', e => {
+  if (!exportBox.contains(e.target)) {
+    exportBox.classList.remove('open');
+    exportToggle.setAttribute('aria-expanded', 'false');
+  }
+});
+function stamp(){
+  const d = new Date();
+  return d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+}
+function downloadFile(name, text, type){
+  if (exportStatus) exportStatus.textContent = '正在生成 ' + name;
+  const blob = new Blob([text], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  showCopyToast('已开始导出');
+  if (exportStatus) exportStatus.textContent = '已开始下载: ' + name;
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+async function serverExport(type){
+  if (exportStatus) exportStatus.textContent = '正在写入本地文件...';
+  const res = await fetch('/api/export', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({type})
+  });
+  let data = {};
+  try { data = await res.json(); } catch (_) {}
+  if (!res.ok || data.ok === false) throw new Error(data.error || '导出失败');
+  if (exportStatus) {
+    exportStatus.innerHTML = '已保存: <a href="'+escAttr(data.url)+'" target="_blank">'+escHtml(data.path || data.filename)+'</a>';
+  }
+  showCopyToast('已导出到本地');
+  return data;
+}
+function csvCell(value){
+  return '"' + String(value ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' / ') + '"';
+}
+function exportMarkdown(){
+  const real = N.filter(n=>!n.ghost).sort((a,b)=>String(a.created_at || a.date || '').localeCompare(String(b.created_at || b.date || '')) || a.id.localeCompare(b.id));
+  const lines = [
+    '# 灵感泡泡导出',
+    '',
+    '- 导出时间: ' + DATA.generated,
+    '- 泡泡数: ' + real.length,
+    '- 关联数: ' + E.length,
+    '',
+    '> Obsidian 最完整的源文件就是泡泡库里的每个 `.md` 文件;这个文件是给其他软件预览和迁移用的索引版。',
+    ''
+  ];
+  real.forEach(n=>{
+    lines.push('## ' + n.id);
+    if (n.date) lines.push('', '- 日期: ' + n.date);
+    if (n.created_at) lines.push('- 时间戳: ' + n.created_at);
+    lines.push('- 项目: ' + projectLabel(n));
+    if (n.path) lines.push('- 文件: ' + n.path);
+    if (n.topics.length) lines.push('- 主题: ' + n.topics.join(', '));
+    if (n.links.length) lines.push('- 关联: ' + n.links.map(x=>'[['+x+']]').join('、'));
+    lines.push('', n.body.trim() || '(空)', '');
+    if (n.suggestions && n.suggestions.length) {
+      lines.push('### 继续聊聊', '');
+      n.suggestions.forEach(s=>lines.push('- ' + s));
+      lines.push('');
+    }
+  });
+  downloadFile('灵感泡泡导出-' + stamp() + '.md', lines.join('\n'), 'text/markdown;charset=utf-8');
+}
+function exportJson(){
+  const payload = {
+    generated: DATA.generated,
+    bubbles: N.map(n=>({
+      title: n.id,
+      date: n.date,
+      created_at: n.created_at || null,
+      project: n.project || null,
+      path: n.path || null,
+      topics: n.topics,
+      body: n.body,
+      links: n.links,
+      suggestions: n.suggestions || [],
+      ghost: n.ghost
+    })),
+    edges: E.map(([a,b])=>({source: N[a].id, target: N[b].id}))
+  };
+  downloadFile('灵感泡泡数据-' + stamp() + '.json', JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+}
+function exportCsv(){
+  const rows = [['title','date','created_at','project','path','topics','links','suggestions','ghost','body']];
+  N.forEach(n=>rows.push([n.id, n.date || '', n.created_at || '', n.project || '', n.path || '', n.topics.join('|'), n.links.join('|'), (n.suggestions || []).join('|'), n.ghost ? 'true' : 'false', n.body]));
+  downloadFile('灵感泡泡表格-' + stamp() + '.csv', rows.map(r=>r.map(csvCell).join(',')).join('\n'), 'text/csv;charset=utf-8');
+}
+function exportHarvest(){
+  const real = N.filter(n=>!n.ghost);
+  const byFreshness = real.slice().sort((a,b)=>
+    String(b.created_at || b.date || '').localeCompare(String(a.created_at || a.date || '')) || b.idx - a.idx
+  );
+  const newestDate = byFreshness.map(n=>n.date).filter(Boolean).sort().pop();
+  let recent = byFreshness.slice(0, 12);
+  if (newestDate) {
+    const end = new Date(newestDate + 'T00:00:00');
+    const start = new Date(end);
+    start.setDate(start.getDate() - 6);
+    const recentByDate = byFreshness.filter(n=>{
+      if (!n.date) return false;
+      const d = new Date(n.date + 'T00:00:00');
+      return d >= start && d <= end;
+    });
+    if (recentByDate.length) recent = recentByDate;
+  }
+
+  const topicCount = new Map();
+  real.forEach(n=>n.topics.forEach(t=>topicCount.set(t, (topicCount.get(t) || 0) + 1)));
+  const hotTopics = [...topicCount.entries()]
+    .sort((a,b)=>b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 10);
+  const connected = real.slice()
+    .sort((a,b)=>b.degree - a.degree || String(b.created_at || b.date || '').localeCompare(String(a.created_at || a.date || '')))
+    .slice(0, 8);
+  const ghosts = N.filter(n=>n.ghost).slice(0, 10);
+
+  const pool = [...connected, ...recent].filter((n, i, arr)=>arr.findIndex(x=>x.id === n.id) === i);
+  const seenPairs = new Set();
+  const combos = [];
+  for (let i = 0; i < pool.length; i++) {
+    for (let j = i + 1; j < pool.length; j++) {
+      const a = pool[i], b = pool[j];
+      const key = [a.id, b.id].sort().join('::');
+      if (seenPairs.has(key)) continue;
+      const sharedTopic = a.topics.find(t=>b.topics.includes(t));
+      const linked = a.links.includes(b.id) || b.links.includes(a.id);
+      if (!sharedTopic && !linked) continue;
+      seenPairs.add(key);
+      combos.push({a, b, reason: sharedTopic ? '共同主题: ' + sharedTopic : '已有双链关联'});
+      if (combos.length >= 6) break;
+    }
+    if (combos.length >= 6) break;
+  }
+  if (!combos.length && byFreshness.length >= 2) {
+    combos.push({a: byFreshness[0], b: byFreshness[1], reason: '最近相邻出现'});
+  }
+
+  const lines = [
+    '# 灵感收成',
+    '',
+    '- 生成时间: ' + DATA.generated,
+    '- 泡泡数: ' + real.length,
+    '- 关联数: ' + E.length,
+    '',
+    '> 这是一份临时视图,不改变任何泡泡文件。项目只是可选视角;真正的底层结构还是泡泡之间的双链和主题气味。',
+    '',
+    '## 最近新增',
+    ''
+  ];
+  (recent.length ? recent : []).forEach(n=>{
+    const meta = [n.date, n.topics.join(', ')].filter(Boolean).join(' · ');
+    lines.push('- [[' + n.id + ']]' + (meta ? ' - ' + meta : ''));
+  });
+  if (!recent.length) lines.push('- 暂时没有可统计的新增泡泡。');
+
+  lines.push('', '## 热门主题', '');
+  hotTopics.forEach(([topic, count])=>lines.push('- ' + topic + ': ' + count + ' 个泡泡'));
+  if (!hotTopics.length) lines.push('- 暂时没有主题标签。');
+
+  lines.push('', '## 连接最多的泡泡', '');
+  connected.forEach(n=>lines.push('- [[' + n.id + ']] - ' + n.degree + ' 条连接'));
+  if (!connected.length) lines.push('- 暂时没有可统计的连接。');
+
+  lines.push('', '## 可以展开的幽灵泡泡', '');
+  ghosts.forEach(n=>lines.push('- [[' + n.id + ']]'));
+  if (!ghosts.length) lines.push('- 暂时没有幽灵泡泡。');
+
+  lines.push('', '## 组合发散', '');
+  combos.forEach(({a,b,reason})=>{
+    lines.push('- 把 [[' + a.id + ']] 和 [[' + b.id + ']] 碰一碰(' + reason + '): 它们能不能变成一个更小、更可验证的新实验?');
+  });
+  if (!combos.length) lines.push('- 暂时没有足够的泡泡可以组合。');
+
+  lines.push('', '## 反向问题', '');
+  lines.push('- 最近这些想法里,哪一个最容易只是好玩但没有持续使用场景?');
+  lines.push('- 哪一个想法可以用一天内的小实验验证,而不是先做完整产品?');
+  lines.push('- 哪些泡泡不该被固定到项目里,反而应该继续自由漂移一阵?');
+
+  downloadFile('灵感收成-' + stamp() + '.md', lines.join('\n'), 'text/markdown;charset=utf-8');
+}
+document.getElementById('export-menu').addEventListener('click', async e=>{
+  const btn = e.target.closest('button[data-export]');
+  if (!btn) return;
+  e.stopPropagation();
+  const type = btn.dataset.export;
+  try {
+    await serverExport(type);
+  } catch (err) {
+    if (exportStatus) exportStatus.textContent = (err.message || '服务端导出失败') + ', 改用浏览器下载。';
+    if (type === 'markdown') exportMarkdown();
+    if (type === 'harvest') exportHarvest();
+    if (type === 'json') exportJson();
+    if (type === 'csv') exportCsv();
+  }
+  setTimeout(()=>{
+    exportBox.classList.remove('open');
+    exportToggle.setAttribute('aria-expanded', 'false');
+  }, 1200);
+});
 
 // ---------- 详情面板 ----------
 const panel = document.getElementById('panel');
@@ -99,21 +1334,120 @@ function openPanel(n){
   selected = n;
   document.getElementById('p-title').textContent = n.id;
   document.getElementById('p-meta').innerHTML =
-    (n.date ? '<span>'+n.date+'</span>' : '<span>幽灵泡泡</span>') +
+    (n.created_at ? '<span>'+n.created_at+'</span>' : (n.date ? '<span>'+n.date+'</span>' : '<span>幽灵泡泡</span>')) +
+    '<span>' + projectLabel(n) + '</span>' +
+    (n.path ? '<span>' + escHtml(n.path) + '</span>' : '') +
     n.topics.map(t=>'<span class="chip" style="border-color:'+topicColor[t]+';color:'+topicColor[t]+'">'+t+'</span>').join('');
   document.getElementById('p-body').innerHTML = n.html;
+  const ideas = n.suggestions || [];
+  document.getElementById('p-ideas').innerHTML = ideas.length
+    ? '<h3>继续聊聊</h3><div class="idea-list">' + ideas.map(s=>'<button class="idea-btn" type="button" data-suggestion="'+s.replace(/"/g,'&quot;')+'">'+s+'</button>').join('') + '</div><div class="copy-tip" id="copy-tip">点一下复制话题,拿去继续聊。</div>'
+    : '';
   const nbrs = [];
   E.forEach(([a,b])=>{ if(a===n.idx) nbrs.push(N[b]); else if(b===n.idx) nbrs.push(N[a]); });
   document.getElementById('p-links').innerHTML = nbrs.length
     ? '<h3>关联泡泡</h3>' + nbrs.map(m=>'<div><a class="wl" data-id="'+m.id.replace(/"/g,'&quot;')+'">'+m.id+'</a></div>').join('')
     : '';
   panel.classList.add('open');
+  if (homeIdeas.classList.contains('open')) renderHomeIdeas(n);
   draw();
 }
 document.getElementById('panel-close').onclick = ()=>{ panel.classList.remove('open'); selected=null; draw(); };
+function fallbackCopy(text){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  ta.style.top = '0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
+  ta.remove();
+  return ok;
+}
+let toastTimer = null;
+function showCopyToast(message){
+  const toast = document.getElementById('copy-toast');
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>toast.classList.remove('show'), 1600);
+}
+async function copyIdea(text, tip){
+  let ok = false;
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      ok = true;
+    } catch (_) {
+      ok = false;
+    }
+  }
+  if (!ok) ok = fallbackCopy(text);
+  const message = ok ? '已复制,可以直接粘贴继续聊。' : '复制被浏览器拦住了,话题如下: ' + text;
+  if (tip) tip.textContent = message;
+  showCopyToast(ok ? '已复制' : '复制失败');
+}
 document.addEventListener('click', e=>{
+  const idea = e.target.closest('.idea-btn');
+  if (idea) {
+    const text = idea.dataset.suggestion || idea.textContent.trim();
+    const tip = idea.closest('.ideas, .home-ideas')?.querySelector('.copy-tip');
+    copyIdea(text, tip);
+    return;
+  }
   const a = e.target.closest('a.wl');
   if (a && byId[a.dataset.id]) { openPanel(byId[a.dataset.id]); centerOn(byId[a.dataset.id]); }
+});
+
+// ---------- 主页面继续聊聊 ----------
+const ideaLauncher = document.getElementById('idea-launcher');
+const homeIdeas = document.getElementById('home-ideas');
+const homeIdeasSource = document.getElementById('home-ideas-source');
+const homeIdeasList = document.getElementById('home-ideas-list');
+const ideaSources = N.filter(n=>!n.ghost && n.suggestions && n.suggestions.length)
+  .sort((a,b)=>String(b.created_at || b.date || '').localeCompare(String(a.created_at || a.date || '')) || b.idx - a.idx);
+let ideaSourceIndex = 0;
+let currentIdeaSource = null;
+function escAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function randomIdeaSource(except){
+  if (!ideaSources.length) return null;
+  const pool = ideaSources.length > 1 && except ? ideaSources.filter(n=>n!==except) : ideaSources;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function renderHomeIdeas(source){
+  if (!source || !source.suggestions || !source.suggestions.length) {
+    homeIdeas.hidden = true;
+    ideaLauncher.hidden = true;
+    return;
+  }
+  currentIdeaSource = source;
+  homeIdeas.hidden = false;
+  ideaLauncher.hidden = false;
+  homeIdeasSource.textContent = '从「' + source.id + '」发散';
+  homeIdeasList.innerHTML = source.suggestions.map(s=>
+    '<button class="idea-btn" type="button" data-suggestion="'+escAttr(s)+'">'+escHtml(s)+'</button>'
+  ).join('');
+}
+if (!ideaSources.length) ideaLauncher.hidden = true;
+ideaLauncher.addEventListener('click', () => {
+  renderHomeIdeas(randomIdeaSource(currentIdeaSource));
+  homeIdeas.classList.add('open');
+  ideaLauncher.hidden = true;
+});
+document.getElementById('close-ideas').addEventListener('click', () => {
+  homeIdeas.classList.remove('open');
+  if (ideaSources.length) ideaLauncher.hidden = false;
+});
+document.getElementById('cycle-ideas').addEventListener('click', e=>{
+  e.stopPropagation();
+  if (!ideaSources.length) return;
+  renderHomeIdeas(randomIdeaSource(currentIdeaSource));
 });
 
 // ---------- 力导向图 ----------
@@ -182,27 +1516,44 @@ function draw(){
   if (selected) E.forEach(([a,b])=>{
     if(a===selected.idx){nbr.add(b);} if(b===selected.idx){nbr.add(a);}
   });
+  const visible = new Set(N.filter(isVisibleNode).map(n=>n.idx));
+  const qHits = query ? new Set(N.filter(n=>matchesProject(n) && matchesQuery(n)).map(n=>n.idx)) : null;
   ctx.lineWidth = 1;
   E.forEach(([ia,ib])=>{
+    if (!visible.has(ia) || !visible.has(ib)) return;
     const a=toScreen(N[ia]), b=toScreen(N[ib]);
     const hot = selected && (ia===selected.idx || ib===selected.idx);
-    ctx.strokeStyle = hot ? 'rgba(167,139,250,.7)' : 'rgba(120,120,160,'+(selected?'.10':'.28')+')';
+    const queryHot = qHits && (qHits.has(ia) || qHits.has(ib));
+    ctx.strokeStyle = hot ? 'rgba(17,17,17,.72)' : (queryHot ? 'rgba(17,17,17,.32)' : 'rgba(31,31,31,'+(selected || qHits?'.10':'.20')+')');
     ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
   });
   N.forEach(n=>{
+    if (!visible.has(n.idx)) return;
     const p = toScreen(n);
     const dimmed = selected && n!==selected && !nbr.has(n.idx);
-    ctx.globalAlpha = dimmed ? 0.25 : 1;
+    const queryDim = qHits && !qHits.has(n.idx);
+    ctx.globalAlpha = (dimmed || queryDim) ? 0.25 : 1;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, n.r*Math.min(view.k,1.6) + 6, 0, 7);
+    ctx.fillStyle = n.ghost ? 'rgba(31,31,31,.06)' : 'rgba(31,31,31,.06)';
+    ctx.fill();
     ctx.beginPath();
     ctx.arc(p.x, p.y, n.r*Math.min(view.k,1.6), 0, 7);
     ctx.fillStyle = n.color;
     if (n.ghost){ ctx.setLineDash([3,3]); ctx.strokeStyle=GHOST; ctx.lineWidth=1.2; ctx.stroke(); ctx.setLineDash([]);
-      ctx.globalAlpha *= .5; ctx.fill(); ctx.globalAlpha = dimmed?0.25:1; }
+      ctx.globalAlpha *= .5; ctx.fill(); ctx.globalAlpha = (dimmed || queryDim)?0.25:1; }
     else ctx.fill();
-    if (n===selected){ ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke(); }
-    if (view.k > 0.45 || n===selected || nbr.has(n.idx)){
-      ctx.fillStyle = dimmed ? 'rgba(160,160,185,.4)' : '#c9c9dd';
-      ctx.font = '11px -apple-system, "PingFang SC", sans-serif';
+    if (n===selected || (qHits && qHits.has(n.idx))){
+      ctx.strokeStyle='rgba(255,255,255,.98)';
+      ctx.lineWidth=3;
+      ctx.stroke();
+      ctx.strokeStyle='rgba(17,17,17,.62)';
+      ctx.lineWidth=1.2;
+      ctx.stroke();
+    }
+    if (view.k > 0.45 || n===selected || nbr.has(n.idx) || (qHits && qHits.has(n.idx))){
+      ctx.fillStyle = (dimmed || queryDim) ? 'rgba(31,31,31,.34)' : '#1f1f1f';
+      ctx.font = '12px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
       ctx.textAlign='center';
       ctx.fillText(n.id, p.x, p.y + n.r*Math.min(view.k,1.6) + 13);
     }
@@ -212,6 +1563,7 @@ function draw(){
 
 function hit(sx,sy){
   for (let i=N.length-1;i>=0;i--){
+    if (!isVisibleNode(N[i])) continue;
     const p = toScreen(N[i]);
     const r = N[i].r*Math.min(view.k,1.6)+5;
     if ((sx-p.x)**2+(sy-p.y)**2 < r*r) return N[i];
@@ -261,40 +1613,42 @@ cv.addEventListener('wheel', e=>{
 
 // ---------- 时间线 ----------
 let tlBuilt = false;
-function buildTimeline(){
-  if (tlBuilt) return; tlBuilt = true;
+function buildTimeline(force=false){
+  if (tlBuilt && !force) return; tlBuilt = true;
   const wrap = document.getElementById('view-timeline');
-  const dated = N.filter(n=>n.date);
+  const dated = N.filter(n=>n.date && isVisibleNode(n));
   if (!dated.length){ wrap.innerHTML='<div style="padding:60px;color:var(--dim)">还没有泡泡</div>'; return; }
+  const timelineDays = [...new Set(dated.map(n=>n.date))].sort();
   const cols = {};
-  days.forEach((d,i)=>cols[d]=i);
-  const stack = days.map(()=>0);
+  timelineDays.forEach((d,i)=>cols[d]=i);
+  const stack = timelineDays.map(()=>0);
   const colW=170, rowH=64, top=80, leftPad=60;
   dated.forEach(n=>{
     const c = cols[n.date];
     n.tx = leftPad + c*colW + colW/2;
     n.ty = top + (stack[c]++)*rowH + 40;
   });
-  const width = leftPad*2 + days.length*colW;
+  const width = leftPad*2 + timelineDays.length*colW;
   const height = top + Math.max(...stack, 1)*rowH + 80;
   let svg = '<svg id="tl" width="'+width+'" height="'+height+'" xmlns="http://www.w3.org/2000/svg">';
   // 列标题和分隔
-  days.forEach((d,i)=>{
+  timelineDays.forEach((d,i)=>{
     const x = leftPad + i*colW + colW/2;
-    svg += '<text x="'+x+'" y="34" text-anchor="middle" fill="#8a8aa3" font-size="12">'+d+'</text>';
-    if (i) svg += '<line x1="'+(leftPad+i*colW)+'" y1="50" x2="'+(leftPad+i*colW)+'" y2="'+(height-20)+'" stroke="#26263a" stroke-dasharray="2,5"/>';
+    svg += '<text x="'+x+'" y="34" text-anchor="middle" fill="#77746b" font-size="12">'+d+'</text>';
+    if (i) svg += '<line x1="'+(leftPad+i*colW)+'" y1="50" x2="'+(leftPad+i*colW)+'" y2="'+(height-20)+'" stroke="rgba(32,32,29,.12)" stroke-dasharray="2,5"/>';
   });
   // 弧线
   E.forEach(([ia,ib])=>{
+    if (!isVisibleNode(N[ia]) || !isVisibleNode(N[ib])) return;
     const a=N[ia], b=N[ib];
     if (a.tx===undefined || b.tx===undefined) return;
     if (a.date===b.date){
       const x=a.tx, y1=Math.min(a.ty,b.ty), y2=Math.max(a.ty,b.ty);
-      svg += '<path d="M '+x+' '+y1+' C '+(x-46)+' '+y1+', '+(x-46)+' '+y2+', '+x+' '+y2+'" fill="none" stroke="rgba(120,120,160,.3)"/>';
+      svg += '<path d="M '+x+' '+y1+' C '+(x-46)+' '+y1+', '+(x-46)+' '+y2+', '+x+' '+y2+'" fill="none" stroke="rgba(31,31,31,.18)"/>';
     } else {
       const [l,r2] = a.tx<b.tx ? [a,b] : [b,a];
       const mx=(l.tx+r2.tx)/2, my=Math.min(l.ty,r2.ty)-34;
-      svg += '<path d="M '+l.tx+' '+l.ty+' Q '+mx+' '+my+', '+r2.tx+' '+r2.ty+'" fill="none" stroke="rgba(167,139,250,.35)" stroke-width="1.2"/>';
+      svg += '<path d="M '+l.tx+' '+l.ty+' Q '+mx+' '+my+', '+r2.tx+' '+r2.ty+'" fill="none" stroke="rgba(17,17,17,.30)" stroke-width="1.2"/>';
     }
   });
   // 节点
@@ -302,7 +1656,7 @@ function buildTimeline(){
     const label = n.id.length>10 ? n.id.slice(0,10)+'…' : n.id;
     svg += '<g class="tl-node" data-idx="'+n.idx+'" style="cursor:pointer">'
       + '<circle cx="'+n.tx+'" cy="'+n.ty+'" r="'+Math.min(n.r,13)+'" fill="'+n.color+'"/>'
-      + '<text x="'+n.tx+'" y="'+(n.ty+Math.min(n.r,13)+15)+'" text-anchor="middle" fill="#c9c9dd" font-size="11">'
+      + '<text x="'+n.tx+'" y="'+(n.ty+Math.min(n.r,13)+15)+'" text-anchor="middle" fill="#1f1f1f" font-size="11">'
       + label.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</text></g>';
   });
   svg += '</svg>';
